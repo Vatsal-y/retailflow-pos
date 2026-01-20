@@ -29,7 +29,7 @@ const cashierNav: NavItem[] = [
   { label: "POS", path: "/cashier", icon: ShoppingCart },
   { label: "Orders", path: "/cashier/orders", icon: ClipboardList },
   { label: "Customers", path: "/cashier/customers", icon: Users },
-  { label: "Shift", path: "/cashier/shift", icon: BarChart3 },
+  { label: "Shifts", path: "/cashier/shifts", icon: BarChart3 },
 ];
 
 const branchNav: NavItem[] = [

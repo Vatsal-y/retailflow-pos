@@ -7,6 +7,9 @@ import { Provider } from "react-redux";
 import { store } from "./store";
 import Index from "./pages/Index";
 import CashierTerminal from "./pages/cashier/CashierTerminal";
+import OrdersPage from "./pages/cashier/OrdersPage";
+import CustomersPage from "./pages/cashier/CustomersPage";
+import ShiftsPage from "./pages/cashier/ShiftsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -21,7 +24,9 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/cashier" element={<CashierTerminal />} />
-            <Route path="/cashier/*" element={<CashierTerminal />} />
+            <Route path="/cashier/orders" element={<OrdersPage />} />
+            <Route path="/cashier/customers" element={<CustomersPage />} />
+            <Route path="/cashier/shifts" element={<ShiftsPage />} />
             <Route path="/branch" element={<Index />} />
             <Route path="/store" element={<Index />} />
             <Route path="/admin" element={<Index />} />
