@@ -14,6 +14,15 @@ import BranchDashboard from "./pages/branch/BranchDashboard";
 import BranchOrders from "./pages/branch/BranchOrders";
 import BranchInventory from "./pages/branch/BranchInventory";
 import BranchEmployees from "./pages/branch/BranchEmployees";
+import BranchProducts from "./pages/branch/BranchProducts";
+import BranchReports from "./pages/branch/BranchReports";
+import BranchSettings from "./pages/branch/BranchSettings";
+import StoreDashboard from "./pages/store/StoreDashboard";
+import StoreBranches from "./pages/store/StoreBranches";
+import StoreProducts from "./pages/store/StoreProducts";
+import StoreEmployees from "./pages/store/StoreEmployees";
+import StoreAnalytics from "./pages/store/StoreAnalytics";
+import StoreSubscription from "./pages/store/StoreSubscription";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,6 +46,16 @@ const App = () => (
             <Route path="/branch/orders" element={<BranchOrders />} />
             <Route path="/branch/inventory" element={<BranchInventory />} />
             <Route path="/branch/employees" element={<BranchEmployees />} />
+            <Route path="/branch/products" element={<BranchProducts />} />
+            <Route path="/branch/reports" element={<BranchReports />} />
+            <Route path="/branch/settings" element={<BranchSettings />} />
+            {/* Store Admin Routes */}
+            <Route path="/store" element={<StoreDashboard />} />
+            <Route path="/store/branches" element={<StoreBranches />} />
+            <Route path="/store/products" element={<StoreProducts />} />
+            <Route path="/store/employees" element={<StoreEmployees />} />
+            <Route path="/store/analytics" element={<StoreAnalytics />} />
+            <Route path="/store/subscription" element={<StoreSubscription />} />
             {/* Fallback */}
             <Route path="*" element={<NotFound />} />
           </Routes>
