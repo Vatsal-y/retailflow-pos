@@ -24,11 +24,14 @@ import StoreEmployees from "./pages/store/StoreEmployees";
 import StoreAnalytics from "./pages/store/StoreAnalytics";
 import StoreSubscription from "./pages/store/StoreSubscription";
 import StoreSettings from "./pages/store/StoreSettings";
-import SuperDashboard from "./pages/super/SuperDashboard";
-import PendingApprovals from "./pages/super/PendingApprovals";
-import SubscriptionManagement from "./pages/super/SubscriptionManagement";
-import StoreOversight from "./pages/super/StoreOversight";
-import PlatformSettings from "./pages/super/PlatformSettings";
+import StoreReports from "./pages/store/StoreReports";
+import StoreCategories from "./pages/store/StoreCategories";
+import SuperAdminLayout from "./pages/superadmin/SuperAdminLayout";
+import SuperAdminDashboard from "./pages/superadmin/SuperAdminDashboard";
+import SuperAdminStores from "./pages/superadmin/SuperAdminStores";
+import SuperAdminSubscriptions from "./pages/superadmin/SuperAdminSubscriptions";
+import SuperAdminRequests from "./pages/superadmin/SuperAdminRequests";
+import SuperAdminSettings from "./pages/superadmin/SuperAdminSettings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -59,16 +62,20 @@ const App = () => (
             <Route path="/store" element={<StoreDashboard />} />
             <Route path="/store/branches" element={<StoreBranches />} />
             <Route path="/store/products" element={<StoreProducts />} />
+            <Route path="/store/categories" element={<StoreCategories />} />
             <Route path="/store/employees" element={<StoreEmployees />} />
             <Route path="/store/analytics" element={<StoreAnalytics />} />
+            <Route path="/store/reports" element={<StoreReports />} />
             <Route path="/store/subscription" element={<StoreSubscription />} />
             <Route path="/store/settings" element={<StoreSettings />} />
             {/* Super Admin Routes */}
-            <Route path="/super" element={<SuperDashboard />} />
-            <Route path="/super/approvals" element={<PendingApprovals />} />
-            <Route path="/super/subscriptions" element={<SubscriptionManagement />} />
-            <Route path="/super/stores" element={<StoreOversight />} />
-            <Route path="/super/settings" element={<PlatformSettings />} />
+            <Route path="/superadmin" element={<SuperAdminLayout />}>
+              <Route path="dashboard" element={<SuperAdminDashboard />} />
+              <Route path="stores" element={<SuperAdminStores />} />
+              <Route path="subscriptions" element={<SuperAdminSubscriptions />} />
+              <Route path="requests" element={<SuperAdminRequests />} />
+              <Route path="settings" element={<SuperAdminSettings />} />
+            </Route>
             {/* Fallback */}
             <Route path="*" element={<NotFound />} />
           </Routes>
