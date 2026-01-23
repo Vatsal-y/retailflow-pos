@@ -164,28 +164,14 @@ export default function SuperDashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.2 }}
           >
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-lg">MRR Growth</CardTitle>
-                    <CardDescription>Monthly Recurring Revenue trend</CardDescription>
-                  </div>
-                  <Badge className="bg-success/10 text-success border-success/20">
-                    <TrendingUp className="h-3 w-3 mr-1" />
-                    +12.3%
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <AreaChartComponent
-                  data={mrrData}
-                  xAxisKey="month"
-                  areas={[{ dataKey: "mrr", name: "MRR", color: "hsl(var(--primary))" }]}
-                  height={250}
-                />
-              </CardContent>
-            </Card>
+            <AreaChartComponent
+              title="MRR Growth"
+              data={mrrData}
+              dataKey="mrr"
+              xAxisKey="month"
+              color="hsl(var(--primary))"
+              height={250}
+            />
           </motion.div>
 
           {/* Plan Distribution */}
@@ -194,38 +180,12 @@ export default function SuperDashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.25 }}
           >
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Plan Distribution</CardTitle>
-                <CardDescription>Active subscriptions by plan</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-8">
-                  <div className="flex-1">
-                    <PieChartComponent
-                      data={planDistribution}
-                      dataKey="value"
-                      nameKey="name"
-                      height={200}
-                    />
-                  </div>
-                  <div className="space-y-4">
-                    {planDistribution.map((plan) => (
-                      <div key={plan.name} className="flex items-center gap-3">
-                        <div
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: plan.color }}
-                        />
-                        <div>
-                          <p className="font-medium">{plan.name}</p>
-                          <p className="text-sm text-muted-foreground">{plan.value} stores</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <PieChartComponent
+              title="Plan Distribution"
+              data={planDistribution}
+              height={250}
+              innerRadius={50}
+            />
           </motion.div>
 
           {/* Churn Analysis */}
@@ -234,28 +194,14 @@ export default function SuperDashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.3 }}
           >
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-lg">Churn Analysis</CardTitle>
-                    <CardDescription>Monthly churn rate trend</CardDescription>
-                  </div>
-                  <Badge className="bg-success/10 text-success border-success/20">
-                    <TrendingDown className="h-3 w-3 mr-1" />
-                    Improving
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <BarChartComponent
-                  data={churnData}
-                  xAxisKey="month"
-                  bars={[{ dataKey: "churn", name: "Churn %", color: "hsl(var(--destructive))" }]}
-                  height={250}
-                />
-              </CardContent>
-            </Card>
+            <BarChartComponent
+              title="Churn Analysis"
+              data={churnData}
+              dataKey="churn"
+              xAxisKey="month"
+              colors={["hsl(var(--destructive))"]}
+              height={250}
+            />
           </motion.div>
 
           {/* Platform Health */}

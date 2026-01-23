@@ -23,6 +23,12 @@ import StoreProducts from "./pages/store/StoreProducts";
 import StoreEmployees from "./pages/store/StoreEmployees";
 import StoreAnalytics from "./pages/store/StoreAnalytics";
 import StoreSubscription from "./pages/store/StoreSubscription";
+import StoreSettings from "./pages/store/StoreSettings";
+import SuperDashboard from "./pages/super/SuperDashboard";
+import PendingApprovals from "./pages/super/PendingApprovals";
+import SubscriptionManagement from "./pages/super/SubscriptionManagement";
+import StoreOversight from "./pages/super/StoreOversight";
+import PlatformSettings from "./pages/super/PlatformSettings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -56,6 +62,13 @@ const App = () => (
             <Route path="/store/employees" element={<StoreEmployees />} />
             <Route path="/store/analytics" element={<StoreAnalytics />} />
             <Route path="/store/subscription" element={<StoreSubscription />} />
+            <Route path="/store/settings" element={<StoreSettings />} />
+            {/* Super Admin Routes */}
+            <Route path="/super" element={<SuperDashboard />} />
+            <Route path="/super/approvals" element={<PendingApprovals />} />
+            <Route path="/super/subscriptions" element={<SubscriptionManagement />} />
+            <Route path="/super/stores" element={<StoreOversight />} />
+            <Route path="/super/settings" element={<PlatformSettings />} />
             {/* Fallback */}
             <Route path="*" element={<NotFound />} />
           </Routes>
