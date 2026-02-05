@@ -3,6 +3,7 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
          https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -20,10 +21,13 @@
 
     <properties>
         <java.version>17</java.version>
-        <jwt.version>0.12.3</jwt.version>
+
+        <!-- ✅ Downgraded JWT Version -->
+        <jwt.version>0.11.5</jwt.version>
     </properties>
 
     <dependencies>
+
         <!-- Spring Boot Web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -55,18 +59,20 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- JWT Dependencies -->
+        <!-- ✅ JWT Dependencies (Compatible with parserBuilder()) -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
             <version>${jwt.version}</version>
         </dependency>
+
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-impl</artifactId>
             <version>${jwt.version}</version>
             <scope>runtime</scope>
         </dependency>
+
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-jackson</artifactId>
@@ -115,6 +121,7 @@
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
+
     </dependencies>
 
     <build>
@@ -133,4 +140,5 @@
             </plugin>
         </plugins>
     </build>
+
 </project>
