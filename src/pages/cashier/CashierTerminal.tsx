@@ -1,15 +1,18 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Search, User, Trash2, Plus, Minus, CreditCard, Banknote, Smartphone, Wallet, X } from "lucide-react";
+import { Search, User, Trash2, Plus, Minus, CreditCard, Banknote, Smartphone, Wallet, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { useCartStore } from "@/store/cartStore";
-import { mockProducts, mockCategories } from "@/data/mockData";
+import { mockCategories } from "@/data/mockData";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/store";
+import { fetchProducts } from "@/store/slices/productSlice";
 
 export default function CashierTerminal() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -17,12 +20,28 @@ export default function CashierTerminal() {
   const [showPayment, setShowPayment] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
+  const dispatch = useDispatch<AppDispatch>();
+  const { products, isLoading, error } = useSelector((state: RootState) => state.product);
+  const { user } = useSelector((state: RootState) => state.auth);
+
   const { items, addItem, removeItem, incrementQuantity, decrementQuantity, clearCart, getSubtotal, getTax, getTotal, getItemCount } = useCartStore();
 
-  const filteredProducts = mockProducts.filter((product) => {
+  useEffect(() => {
+    if (user && user.storeId) {
+      dispatch(fetchProducts(user.storeId));
+    }
+  }, [dispatch, user]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
+
+  const filteredProducts = products.filter((product) => {
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.barcode?.includes(searchQuery);
+      (product.barcode && product.barcode.includes(searchQuery));
     const matchesCategory = !selectedCategory || product.categoryId === selectedCategory;
     return matchesSearch && matchesCategory;
   });
@@ -41,7 +60,7 @@ export default function CashierTerminal() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [items.length]);
 
-  const handleAddToCart = (product: typeof mockProducts[0]) => {
+  const handleAddToCart = (product: any) => {
     addItem({
       productId: product.id,
       name: product.name,
@@ -61,7 +80,7 @@ export default function CashierTerminal() {
   return (
     <div className="flex min-h-screen bg-background">
       <AppSidebar role="cashier" />
-      
+
       <main className="flex-1 md:ml-60 transition-all duration-300">
         <div className="flex flex-col lg:flex-row h-screen">
           {/* Products Section */}
@@ -78,7 +97,7 @@ export default function CashierTerminal() {
                   className="pl-10 h-12 text-base"
                 />
               </div>
-              
+
               <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
                 <Button
                   variant={selectedCategory === null ? "default" : "outline"}
@@ -103,39 +122,50 @@ export default function CashierTerminal() {
 
             {/* Products Grid */}
             <div className="flex-1 overflow-y-auto scrollbar-thin">
-              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-                {filteredProducts.map((product) => (
-                  <motion.div
-                    key={product.id}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <Card
-                      variant="pos"
-                      className="p-3"
-                      onClick={() => handleAddToCart(product)}
+              {isLoading ? (
+                <div className="h-full flex items-center justify-center">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {filteredProducts.map((product) => (
+                    <motion.div
+                      key={product.id}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      whileTap={{ scale: 0.98 }}
                     >
-                      <div className="aspect-square rounded-lg overflow-hidden bg-muted mb-3">
-                        {product.image ? (
-                          <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                            No Image
-                          </div>
-                        )}
-                      </div>
-                      <h3 className="font-medium text-sm line-clamp-2 mb-1">{product.name}</h3>
-                      <div className="flex items-center justify-between">
-                        <span className="text-lg font-bold text-primary">${product.price.toFixed(2)}</span>
-                        {product.stock <= product.lowStockThreshold && (
-                          <Badge variant="lowStock">Low</Badge>
-                        )}
-                      </div>
-                    </Card>
-                  </motion.div>
-                ))}
-              </div>
+                      <Card
+                        variant="pos"
+                        className="p-3"
+                        onClick={() => handleAddToCart(product)}
+                      >
+                        <div className="aspect-square rounded-lg overflow-hidden bg-muted mb-3">
+                          {product.image ? (
+                            <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                              No Image
+                            </div>
+                          )}
+                        </div>
+                        <h3 className="font-medium text-sm line-clamp-2 mb-1">{product.name}</h3>
+                        <div className="flex items-center justify-between">
+                          <span className="text-lg font-bold text-primary">${product.price.toFixed(2)}</span>
+                          {product.stock <= product.lowStockThreshold && (
+                            <Badge variant="lowStock">Low</Badge>
+                          )}
+                        </div>
+                      </Card>
+                    </motion.div>
+                  ))}
+                  {filteredProducts.length === 0 && !isLoading && (
+                    <div className="col-span-full h-40 flex items-center justify-center text-muted-foreground">
+                      No products found.
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

@@ -34,6 +34,9 @@ import SuperAdminRequests from "./pages/superadmin/SuperAdminRequests";
 import SuperAdminSettings from "./pages/superadmin/SuperAdminSettings";
 import NotFound from "./pages/NotFound";
 
+import RequireAuth from "@/components/auth/RequireAuth";
+import LoginPage from "@/pages/auth/LoginPage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -44,38 +47,130 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            <Route path="/login" element={<LoginPage />} />
+
+            {/* Protected Routes */}
             <Route path="/" element={<Index />} />
+
             {/* Cashier Routes */}
-            <Route path="/cashier" element={<CashierTerminal />} />
-            <Route path="/cashier/orders" element={<OrdersPage />} />
-            <Route path="/cashier/customers" element={<CustomersPage />} />
-            <Route path="/cashier/shifts" element={<ShiftsPage />} />
+            <Route path="/cashier" element={
+              <RequireAuth allowedRoles={['CASHIER', 'BRANCH_MANAGER', 'STORE_ADMIN', 'SUPER_ADMIN']}>
+                <CashierTerminal />
+              </RequireAuth>
+            } />
+            <Route path="/cashier/orders" element={
+              <RequireAuth allowedRoles={['CASHIER', 'BRANCH_MANAGER', 'STORE_ADMIN', 'SUPER_ADMIN']}>
+                <OrdersPage />
+              </RequireAuth>
+            } />
+            <Route path="/cashier/customers" element={
+              <RequireAuth allowedRoles={['CASHIER', 'BRANCH_MANAGER', 'STORE_ADMIN', 'SUPER_ADMIN']}>
+                <CustomersPage />
+              </RequireAuth>
+            } />
+            <Route path="/cashier/shifts" element={
+              <RequireAuth allowedRoles={['CASHIER', 'BRANCH_MANAGER', 'STORE_ADMIN', 'SUPER_ADMIN']}>
+                <ShiftsPage />
+              </RequireAuth>
+            } />
+
             {/* Branch Manager Routes */}
-            <Route path="/branch" element={<BranchDashboard />} />
-            <Route path="/branch/orders" element={<BranchOrders />} />
-            <Route path="/branch/inventory" element={<BranchInventory />} />
-            <Route path="/branch/employees" element={<BranchEmployees />} />
-            <Route path="/branch/products" element={<BranchProducts />} />
-            <Route path="/branch/reports" element={<BranchReports />} />
-            <Route path="/branch/settings" element={<BranchSettings />} />
+            <Route path="/branch" element={
+              <RequireAuth allowedRoles={['BRANCH_MANAGER', 'STORE_ADMIN', 'SUPER_ADMIN']}>
+                <BranchDashboard />
+              </RequireAuth>
+            } />
+            <Route path="/branch/orders" element={
+              <RequireAuth allowedRoles={['BRANCH_MANAGER', 'STORE_ADMIN', 'SUPER_ADMIN']}>
+                <BranchOrders />
+              </RequireAuth>
+            } />
+            <Route path="/branch/inventory" element={
+              <RequireAuth allowedRoles={['BRANCH_MANAGER', 'STORE_ADMIN', 'SUPER_ADMIN']}>
+                <BranchInventory />
+              </RequireAuth>
+            } />
+            <Route path="/branch/employees" element={
+              <RequireAuth allowedRoles={['BRANCH_MANAGER', 'STORE_ADMIN', 'SUPER_ADMIN']}>
+                <BranchEmployees />
+              </RequireAuth>
+            } />
+            <Route path="/branch/products" element={
+              <RequireAuth allowedRoles={['BRANCH_MANAGER', 'STORE_ADMIN', 'SUPER_ADMIN']}>
+                <BranchProducts />
+              </RequireAuth>
+            } />
+            <Route path="/branch/reports" element={
+              <RequireAuth allowedRoles={['BRANCH_MANAGER', 'STORE_ADMIN', 'SUPER_ADMIN']}>
+                <BranchReports />
+              </RequireAuth>
+            } />
+            <Route path="/branch/settings" element={
+              <RequireAuth allowedRoles={['BRANCH_MANAGER', 'STORE_ADMIN', 'SUPER_ADMIN']}>
+                <BranchSettings />
+              </RequireAuth>
+            } />
+
             {/* Store Admin Routes */}
-            <Route path="/store" element={<StoreDashboard />} />
-            <Route path="/store/branches" element={<StoreBranches />} />
-            <Route path="/store/products" element={<StoreProducts />} />
-            <Route path="/store/categories" element={<StoreCategories />} />
-            <Route path="/store/employees" element={<StoreEmployees />} />
-            <Route path="/store/analytics" element={<StoreAnalytics />} />
-            <Route path="/store/reports" element={<StoreReports />} />
-            <Route path="/store/subscription" element={<StoreSubscription />} />
-            <Route path="/store/settings" element={<StoreSettings />} />
+            <Route path="/store" element={
+              <RequireAuth allowedRoles={['STORE_ADMIN', 'SUPER_ADMIN']}>
+                <StoreDashboard />
+              </RequireAuth>
+            } />
+            <Route path="/store/branches" element={
+              <RequireAuth allowedRoles={['STORE_ADMIN', 'SUPER_ADMIN']}>
+                <StoreBranches />
+              </RequireAuth>
+            } />
+            <Route path="/store/products" element={
+              <RequireAuth allowedRoles={['STORE_ADMIN', 'SUPER_ADMIN']}>
+                <StoreProducts />
+              </RequireAuth>
+            } />
+            <Route path="/store/categories" element={
+              <RequireAuth allowedRoles={['STORE_ADMIN', 'SUPER_ADMIN']}>
+                <StoreCategories />
+              </RequireAuth>
+            } />
+            <Route path="/store/employees" element={
+              <RequireAuth allowedRoles={['STORE_ADMIN', 'SUPER_ADMIN']}>
+                <StoreEmployees />
+              </RequireAuth>
+            } />
+            <Route path="/store/analytics" element={
+              <RequireAuth allowedRoles={['STORE_ADMIN', 'SUPER_ADMIN']}>
+                <StoreAnalytics />
+              </RequireAuth>
+            } />
+            <Route path="/store/reports" element={
+              <RequireAuth allowedRoles={['STORE_ADMIN', 'SUPER_ADMIN']}>
+                <StoreReports />
+              </RequireAuth>
+            } />
+            <Route path="/store/subscription" element={
+              <RequireAuth allowedRoles={['STORE_ADMIN', 'SUPER_ADMIN']}>
+                <StoreSubscription />
+              </RequireAuth>
+            } />
+            <Route path="/store/settings" element={
+              <RequireAuth allowedRoles={['STORE_ADMIN', 'SUPER_ADMIN']}>
+                <StoreSettings />
+              </RequireAuth>
+            } />
+
             {/* Super Admin Routes */}
-            <Route path="/superadmin" element={<SuperAdminLayout />}>
+            <Route path="/superadmin" element={
+              <RequireAuth allowedRoles={['SUPER_ADMIN']}>
+                <SuperAdminLayout />
+              </RequireAuth>
+            }>
               <Route path="dashboard" element={<SuperAdminDashboard />} />
               <Route path="stores" element={<SuperAdminStores />} />
               <Route path="subscriptions" element={<SuperAdminSubscriptions />} />
               <Route path="requests" element={<SuperAdminRequests />} />
               <Route path="settings" element={<SuperAdminSettings />} />
             </Route>
+
             {/* Fallback */}
             <Route path="*" element={<NotFound />} />
           </Routes>
