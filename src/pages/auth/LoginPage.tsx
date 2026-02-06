@@ -23,29 +23,6 @@ export default function LoginPage() {
     const from = location.state?.from?.pathname || "/";
 
     useEffect(() => {
-        if (isAuthenticated && user) {
-            console.log("User authenticated, redirecting...", user);
-            // Redirect based on role if no specific 'from' location
-            let targetPath = from;
-            if (targetPath === "/" || targetPath === "/login") {
-                // Normalize role to uppercase for comparison just in case
-                const role = user.role?.toUpperCase();
-                switch (role) {
-                    case "CASHIER": targetPath = "/cashier"; break;
-                    case "BRANCH_MANAGER": targetPath = "/branch"; break;
-                    case "STORE_ADMIN": targetPath = "/store"; break;
-                    case "SUPER_ADMIN": targetPath = "/superadmin"; break;
-                    default:
-                        console.warn("Unknown role:", user.role);
-                        targetPath = "/";
-                }
-            }
-            console.log("Navigating to:", targetPath);
-            navigate(targetPath, { replace: true });
-        }
-    }, [isAuthenticated, user, navigate, from]);
-
-    useEffect(() => {
         if (error) {
             toast.error(error);
             dispatch(clearError());
@@ -59,7 +36,32 @@ export default function LoginPage() {
             return;
         }
 
-        dispatch(login({ email, password }));
+        try {
+            const resultAction = await dispatch(login({ email, password })).unwrap();
+            console.log("Login successful, result:", resultAction);
+
+            const user = resultAction.user;
+            let targetPath = from;
+
+            if (targetPath === "/" || targetPath === "/login") {
+                const role = user.role?.toUpperCase();
+                switch (role) {
+                    case "CASHIER": targetPath = "/cashier"; break;
+                    case "BRANCH_MANAGER": targetPath = "/branch"; break;
+                    case "STORE_ADMIN": targetPath = "/store"; break;
+                    case "SUPER_ADMIN": targetPath = "/superadmin"; break;
+                    default:
+                        console.warn("Unknown role:", user.role);
+                        targetPath = "/";
+                }
+            }
+
+            console.log("Navigating to:", targetPath);
+            navigate(targetPath, { replace: true });
+        } catch (err) {
+            console.error("Login failed:", err);
+            // Error toast is handled by the useEffect watching 'error' state
+        }
     };
 
     return (
