@@ -26,8 +26,20 @@ interface AuthState {
   error: string | null;
 }
 
+const getUserFromStorage = (): AuthUser | null => {
+  try {
+    const userStr = localStorage.getItem('auth_user');
+    if (!userStr || userStr === 'undefined') return null;
+    return JSON.parse(userStr);
+  } catch (error) {
+    console.error('Failed to parse auth_user from local storage', error);
+    localStorage.removeItem('auth_user');
+    return null;
+  }
+};
+
 const initialState: AuthState = {
-  user: JSON.parse(localStorage.getItem('auth_user') || 'null'),
+  user: getUserFromStorage(),
   token: localStorage.getItem('auth_token'),
   isAuthenticated: !!localStorage.getItem('auth_token'),
   isLoading: false,

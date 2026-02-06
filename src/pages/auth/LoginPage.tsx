@@ -24,17 +24,23 @@ export default function LoginPage() {
 
     useEffect(() => {
         if (isAuthenticated && user) {
+            console.log("User authenticated, redirecting...", user);
             // Redirect based on role if no specific 'from' location
             let targetPath = from;
             if (targetPath === "/" || targetPath === "/login") {
-                switch (user.role) {
+                // Normalize role to uppercase for comparison just in case
+                const role = user.role?.toUpperCase();
+                switch (role) {
                     case "CASHIER": targetPath = "/cashier"; break;
                     case "BRANCH_MANAGER": targetPath = "/branch"; break;
                     case "STORE_ADMIN": targetPath = "/store"; break;
                     case "SUPER_ADMIN": targetPath = "/superadmin"; break;
-                    default: targetPath = "/";
+                    default:
+                        console.warn("Unknown role:", user.role);
+                        targetPath = "/";
                 }
             }
+            console.log("Navigating to:", targetPath);
             navigate(targetPath, { replace: true });
         }
     }, [isAuthenticated, user, navigate, from]);
