@@ -1,20 +1,46 @@
 import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Search, Download, Filter, Eye, X, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Search,
+  Download,
+  Eye,
+  X,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
 import { Skeleton } from "@/components/ui/skeleton";
 import { AppSidebar } from "@/components/layout/AppSidebar";
+
 import { Order, OrderStatus, PaymentMethod } from "@/store/slices/orderSlice";
-import { format, subDays, isAfter, isBefore, parseISO } from "date-fns";
-import { cn } from "@/lib/utils";
+import { format, subDays, isAfter, parseISO } from "date-fns";
+
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store";
 import { fetchOrders } from "@/store/slices/orderSlice";
+
 import toast from "react-hot-toast";
 
 const ITEMS_PER_PAGE = 25;
@@ -29,33 +55,40 @@ export default function OrdersPage() {
 
   const dispatch = useDispatch<AppDispatch>();
   const { user } = useSelector((state: RootState) => state.auth);
-  const { orders, isLoading, error } = useSelector((state: RootState) => state.order);
+  const { orders, isLoading, error } = useSelector(
+    (state: RootState) => state.order
+  );
 
+  /* ✅ Fetch Orders */
   useEffect(() => {
-    if (user && user.branchId) {
+    if (user?.branchId) {
       dispatch(fetchOrders(user.branchId));
     }
   }, [dispatch, user]);
 
+  /* ✅ Show Error Toast */
   useEffect(() => {
-    if (error) {
-      toast.error(error);
-    }
+    if (error) toast.error(error);
   }, [error]);
 
-
+  /* ✅ Filtering */
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
       // Search filter
       const matchesSearch =
         order.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (order.customerName?.toLowerCase().includes(searchQuery.toLowerCase()));
+        (order.customerId &&
+          `Customer #${order.customerId}`
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()));
 
       // Status filter
-      const matchesStatus = statusFilter === "all" || order.status === statusFilter;
+      const matchesStatus =
+        statusFilter === "all" || order.status === statusFilter;
 
       // Payment filter
-      const matchesPayment = paymentFilter === "all" || order.paymentMethod === paymentFilter;
+      const matchesPayment =
+        paymentFilter === "all" || order.paymentMethod === paymentFilter;
 
       // Date filter
       let matchesDate = true;
@@ -70,50 +103,79 @@ export default function OrdersPage() {
     });
   }, [orders, searchQuery, statusFilter, dateFilter, paymentFilter]);
 
+  /* Pagination */
   const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
   const paginatedOrders = filteredOrders.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
 
+  /* Export CSV */
   const exportToCSV = () => {
-    const headers = ["Order#", "Date", "Customer", "Items", "Total", "Payment", "Status"];
-    const rows = filteredOrders.map(order => [
+    const headers = [
+      "Order#",
+      "Date",
+      "Customer",
+      "Items",
+      "Total",
+      "Payment",
+      "Status",
+    ];
+
+    const rows = filteredOrders.map((order) => [
       order.orderNumber,
       format(parseISO(order.createdAt), "yyyy-MM-dd HH:mm"),
-      order.customerName || "Walk-in",
+      order.customerId ? `Customer #${order.customerId}` : "Walk-in",
       order.items.length,
       order.totalAmount.toFixed(2),
       order.paymentMethod,
-      order.status
+      order.status,
     ]);
 
-    const csvContent = [headers, ...rows].map(row => row.join(",")).join("\n");
+    const csvContent = [headers, ...rows]
+      .map((row) => row.join(","))
+      .join("\n");
+
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
+
     const a = document.createElement("a");
     a.href = url;
     a.download = `orders-${format(new Date(), "yyyy-MM-dd")}.csv`;
     a.click();
+
     window.URL.revokeObjectURL(url);
   };
 
+  /* Status Badge Variant */
   const getStatusVariant = (status: OrderStatus) => {
     switch (status) {
-      case "paid": return "success";
-      case "pending": return "warning";
-      case "refunded": return "destructive";
-      case "cancelled": return "secondary";
-      default: return "default";
+      case "COMPLETED":
+        return "success";
+      case "PENDING":
+        return "warning";
+      case "REFUNDED":
+        return "destructive";
+      case "CANCELLED":
+        return "secondary";
+      default:
+        return "default";
     }
   };
 
+  /* Payment Icons */
   const getPaymentIcon = (method: PaymentMethod) => {
     switch (method) {
-      case "cash": return "💵";
-      case "card": return "💳";
-      case "upi": return "📱";
-      case "wallet": return "👛";
+      case "CASH":
+        return "💵";
+      case "CARD":
+        return "💳";
+      case "UPI":
+        return "📱";
+      case "WALLET":
+        return "👛";
+      default:
+        return "💰";
     }
   };
 
@@ -143,13 +205,15 @@ export default function OrdersPage() {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search by Order# or Customer..."
+                  placeholder="Search by Order#..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9"
                 />
               </div>
+
               <div className="flex flex-wrap gap-3">
+                {/* Date Filter */}
                 <Select value={dateFilter} onValueChange={setDateFilter}>
                   <SelectTrigger className="w-[140px]">
                     <Calendar className="h-4 w-4 mr-2" />
@@ -162,27 +226,32 @@ export default function OrdersPage() {
                     <SelectItem value="all">All time</SelectItem>
                   </SelectContent>
                 </Select>
+
+                {/* Status Filter */}
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[120px]">
+                  <SelectTrigger className="w-[140px]">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="paid">Paid</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="refunded">Refunded</SelectItem>
+                    <SelectItem value="COMPLETED">Completed</SelectItem>
+                    <SelectItem value="PENDING">Pending</SelectItem>
+                    <SelectItem value="REFUNDED">Refunded</SelectItem>
+                    <SelectItem value="CANCELLED">Cancelled</SelectItem>
                   </SelectContent>
                 </Select>
+
+                {/* Payment Filter */}
                 <Select value={paymentFilter} onValueChange={setPaymentFilter}>
-                  <SelectTrigger className="w-[130px]">
+                  <SelectTrigger className="w-[140px]">
                     <SelectValue placeholder="Payment" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Payments</SelectItem>
-                    <SelectItem value="cash">Cash</SelectItem>
-                    <SelectItem value="card">Card</SelectItem>
-                    <SelectItem value="upi">UPI</SelectItem>
-                    <SelectItem value="wallet">Wallet</SelectItem>
+                    <SelectItem value="CASH">Cash</SelectItem>
+                    <SelectItem value="CARD">Card</SelectItem>
+                    <SelectItem value="UPI">UPI</SelectItem>
+                    <SelectItem value="WALLET">Wallet</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -205,6 +274,7 @@ export default function OrdersPage() {
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
+
                 <TableBody>
                   {isLoading ? (
                     Array.from({ length: 10 }).map((_, i) => (
@@ -229,15 +299,27 @@ export default function OrdersPage() {
                         className="cursor-pointer hover:bg-muted/50"
                         onClick={() => setSelectedOrder(order)}
                       >
-                        <TableCell className="font-medium">{order.orderNumber}</TableCell>
-                        <TableCell>{format(parseISO(order.createdAt), "dd MMM, HH:mm")}</TableCell>
-                        <TableCell>{order.customerName || "Walk-in"}</TableCell>
-                        <TableCell className="text-center">{order.items.length}</TableCell>
-                        <TableCell className="text-right font-semibold">₹{order.totalAmount.toLocaleString()}</TableCell>
+                        <TableCell className="font-medium">
+                          {order.orderNumber}
+                        </TableCell>
+                        <TableCell>
+                          {format(parseISO(order.createdAt), "dd MMM, HH:mm")}
+                        </TableCell>
+                        <TableCell>
+                          {order.customerId
+                            ? `Customer #${order.customerId}`
+                            : "Walk-in"}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {order.items.length}
+                        </TableCell>
+                        <TableCell className="text-right font-semibold">
+                          ₹{order.totalAmount.toLocaleString()}
+                        </TableCell>
                         <TableCell>
                           <span className="flex items-center gap-1">
                             {getPaymentIcon(order.paymentMethod)}
-                            <span className="capitalize">{order.paymentMethod}</span>
+                            {order.paymentMethod}
                           </span>
                         </TableCell>
                         <TableCell>
@@ -261,26 +343,27 @@ export default function OrdersPage() {
             {totalPages > 1 && (
               <div className="flex items-center justify-between p-4 border-t">
                 <p className="text-sm text-muted-foreground">
-                  Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to{" "}
-                  {Math.min(currentPage * ITEMS_PER_PAGE, filteredOrders.length)} of{" "}
-                  {filteredOrders.length} orders
+                  Page {currentPage} of {totalPages}
                 </p>
+
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    onClick={() =>
+                      setCurrentPage((p) => Math.max(1, p - 1))
+                    }
                     disabled={currentPage === 1}
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
-                  <span className="text-sm">
-                    Page {currentPage} of {totalPages}
-                  </span>
+
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    onClick={() =>
+                      setCurrentPage((p) => Math.min(totalPages, p + 1))
+                    }
                     disabled={currentPage === totalPages}
                   >
                     <ChevronRight className="h-4 w-4" />
@@ -292,7 +375,7 @@ export default function OrdersPage() {
         </div>
       </main>
 
-      {/* Order Details Modal */}
+      {/* Modal */}
       {selectedOrder && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <motion.div
@@ -301,80 +384,39 @@ export default function OrdersPage() {
             className="bg-card rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto"
           >
             <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h3 className="text-xl font-bold">{selectedOrder.orderNumber}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {format(parseISO(selectedOrder.createdAt), "dd MMM yyyy, HH:mm")}
-                  </p>
-                </div>
-                <Button variant="ghost" size="icon" onClick={() => setSelectedOrder(null)}>
+              <div className="flex justify-between mb-6">
+                <h3 className="text-xl font-bold">
+                  {selectedOrder.orderNumber}
+                </h3>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSelectedOrder(null)}
+                >
                   <X className="h-5 w-5" />
                 </Button>
               </div>
 
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Customer</span>
-                  <span className="font-medium">{selectedOrder.customerName || "Walk-in"}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Status</span>
-                  <Badge variant={getStatusVariant(selectedOrder.status)}>
-                    {selectedOrder.status}
-                  </Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Payment</span>
-                  <span className="flex items-center gap-1 font-medium">
-                    {getPaymentIcon(selectedOrder.paymentMethod)}
-                    <span className="capitalize">{selectedOrder.paymentMethod}</span>
-                  </span>
-                </div>
-
-                <div className="border-t pt-4">
-                  <h4 className="font-semibold mb-3">Items</h4>
-                  <div className="space-y-2">
-                    {selectedOrder.items.map((item) => (
-                      <div key={item.id} className="flex justify-between text-sm">
-                        <span>{item.name} × {item.quantity}</span>
-                        <span>₹{item.total.toLocaleString()}</span>
-                      </div>
-                    ))}
+              {/* Items */}
+              <h4 className="font-semibold mb-3">Items</h4>
+              <div className="space-y-2">
+                {selectedOrder.items.map((item) => (
+                  <div
+                    key={item.productId}
+                    className="flex justify-between text-sm"
+                  >
+                    <span>
+                      {item.productName} × {item.quantity}
+                    </span>
+                    <span>₹{item.totalPrice.toLocaleString()}</span>
                   </div>
-                </div>
-
-                <div className="border-t pt-4 space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Subtotal</span>
-                    <span>₹{selectedOrder.subtotal.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Tax</span>
-                    <span>₹{selectedOrder.taxAmount.toFixed(2)}</span>
-                  </div>
-                  {selectedOrder.discountAmount > 0 && (
-                    <div className="flex justify-between text-sm text-emerald-600">
-                      <span>Discount</span>
-                      <span>-₹{selectedOrder.discountAmount.toLocaleString()}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between font-bold text-lg pt-2 border-t">
-                    <span>Total</span>
-                    <span>₹{selectedOrder.totalAmount.toLocaleString()}</span>
-                  </div>
-                </div>
+                ))}
               </div>
 
-              <div className="flex gap-3 mt-6">
-                <Button variant="outline" className="flex-1" onClick={() => setSelectedOrder(null)}>
-                  Close
-                </Button>
-                {selectedOrder.status === "paid" && (
-                  <Button variant="destructive" className="flex-1">
-                    Issue Refund
-                  </Button>
-                )}
+              {/* Total */}
+              <div className="border-t mt-4 pt-4 flex justify-between font-bold">
+                <span>Total</span>
+                <span>₹{selectedOrder.totalAmount.toLocaleString()}</span>
               </div>
             </div>
           </motion.div>

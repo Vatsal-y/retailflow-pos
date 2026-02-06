@@ -7,6 +7,7 @@ import lombok.EqualsAndHashCode;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -27,6 +28,7 @@ public class Order extends BaseEntity {
     private Long cashierId;
     
 @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+@JsonManagedReference
 private List<OrderItem> items = new ArrayList<>();
 
     
