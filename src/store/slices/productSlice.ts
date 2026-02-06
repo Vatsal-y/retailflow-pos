@@ -54,6 +54,70 @@ export const fetchProducts = createAsyncThunk(
   }
 );
 
+// Search products by query (SKU, barcode, name)
+export const searchProducts = createAsyncThunk(
+  'product/searchProducts',
+  async (params: { storeId: number; q: string }, { rejectWithValue }) => {
+    try {
+      const response = await api.get<Product[]>(`/products/search?storeId=${params.storeId}&q=${params.q}`);
+      return response.data;
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        return rejectWithValue(error.response.data.message || 'Failed to search products');
+      }
+      return rejectWithValue(error.message || 'Failed to search products');
+    }
+  }
+);
+
+// Create product
+export const createProduct = createAsyncThunk(
+  'product/createProduct',
+  async (productData: Omit<Product, 'id' | 'createdAt' | 'stock' | 'categoryName'>, { rejectWithValue }) => {
+    try {
+      const response = await api.post<Product>('/products', productData);
+      return response.data;
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        return rejectWithValue(error.response.data.message || 'Failed to create product');
+      }
+      return rejectWithValue(error.message || 'Failed to create product');
+    }
+  }
+);
+
+// Update product
+export const updateProduct = createAsyncThunk(
+  'product/updateProduct',
+  async (params: { id: string; data: Partial<Product> }, { rejectWithValue }) => {
+    try {
+      const response = await api.put<Product>(`/products/${params.id}`, params.data);
+      return response.data;
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        return rejectWithValue(error.response.data.message || 'Failed to update product');
+      }
+      return rejectWithValue(error.message || 'Failed to update product');
+    }
+  }
+);
+
+// Delete product
+export const deleteProduct = createAsyncThunk(
+  'product/deleteProduct',
+  async (id: string, { rejectWithValue }) => {
+    try {
+      await api.delete(`/products/${id}`);
+      return id;
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        return rejectWithValue(error.response.data.message || 'Failed to delete product');
+      }
+      return rejectWithValue(error.message || 'Failed to delete product');
+    }
+  }
+);
+
 const productSlice = createSlice({
   name: 'product',
   initialState,
@@ -64,13 +128,13 @@ const productSlice = createSlice({
     addProduct: (state, action: PayloadAction<Product>) => {
       state.products.push(action.payload);
     },
-    updateProduct: (state, action: PayloadAction<Product>) => {
+    updateProductLocal: (state, action: PayloadAction<Product>) => {
       const index = state.products.findIndex(p => p.id === action.payload.id);
       if (index !== -1) {
         state.products[index] = action.payload;
       }
     },
-    deleteProduct: (state, action: PayloadAction<string>) => {
+    deleteProductLocal: (state, action: PayloadAction<string>) => {
       state.products = state.products.filter(p => p.id !== action.payload);
     },
     setSelectedProduct: (state, action: PayloadAction<Product | null>) => {
@@ -88,6 +152,9 @@ const productSlice = createSlice({
     setError: (state, action: PayloadAction<string | null>) => {
       state.error = action.payload;
     },
+    clearError: (state) => {
+      state.error = null;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -102,6 +169,61 @@ const productSlice = createSlice({
       .addCase(fetchProducts.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
+      })
+      // Search Products
+      .addCase(searchProducts.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(searchProducts.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.products = action.payload;
+      })
+      .addCase(searchProducts.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+      // Create Product
+      .addCase(createProduct.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(createProduct.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.products.unshift(action.payload);
+      })
+      .addCase(createProduct.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+      // Update Product
+      .addCase(updateProduct.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(updateProduct.fulfilled, (state, action) => {
+        state.isLoading = false;
+        const index = state.products.findIndex(p => p.id === action.payload.id);
+        if (index !== -1) {
+          state.products[index] = action.payload;
+        }
+      })
+      .addCase(updateProduct.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+      // Delete Product
+      .addCase(deleteProduct.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(deleteProduct.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.products = state.products.filter(p => p.id !== action.payload);
+      })
+      .addCase(deleteProduct.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
       });
   }
 });
@@ -109,12 +231,14 @@ const productSlice = createSlice({
 export const {
   setProducts,
   addProduct,
-  updateProduct,
-  deleteProduct,
+  updateProductLocal,
+  deleteProductLocal,
   setSelectedProduct,
   setSearchQuery,
   setSelectedCategory,
   setLoading,
-  setError
+  setError,
+  clearError
 } = productSlice.actions;
 export default productSlice.reducer;
+

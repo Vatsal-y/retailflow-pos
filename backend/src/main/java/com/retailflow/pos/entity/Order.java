@@ -26,9 +26,9 @@ public class Order extends BaseEntity {
     @Column(name = "cashier_id", nullable = false)
     private Long cashierId;
     
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "order_id")
-    private List<OrderItem> items = new ArrayList<>();
+@OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+private List<OrderItem> items = new ArrayList<>();
+
     
     @Column(name = "subtotal", nullable = false, precision = 10, scale = 2)
     private BigDecimal subtotal;

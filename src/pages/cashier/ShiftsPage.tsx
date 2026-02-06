@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Clock, DollarSign, ShoppingCart, CreditCard, Smartphone, Banknote, Wallet, AlertTriangle, Play, Square, X, Lock, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,11 +9,13 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AppSidebar } from "@/components/layout/AppSidebar";
-import { mockShifts, mockPaymentBreakdown } from "@/data/mockData";
 import { ShiftReport } from "@/store/slices/shiftReportSlice";
 import { format, parseISO, differenceInHours, differenceInMinutes } from "date-fns";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 import toast from "react-hot-toast";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/store";
+import { startShift, endShift, fetchShiftReports } from "@/store/slices/shiftReportSlice";
 
 const COLORS = ["hsl(var(--emerald-500))", "hsl(var(--primary))", "hsl(var(--amber-500))", "hsl(var(--pink-500))"];
 
@@ -23,10 +25,26 @@ export default function ShiftsPage() {
   const [actualCash, setActualCash] = useState("");
   const [supervisorPin, setSupervisorPin] = useState("");
   const [openingCash, setOpeningCash] = useState("5000");
-  const [isLoading] = useState(false);
 
-  const currentShift = mockShifts.find(s => s.status === 'active');
-  const pastShifts = mockShifts.filter(s => s.status === 'closed');
+  const dispatch = useDispatch<AppDispatch>();
+  const { user } = useSelector((state: RootState) => state.auth);
+  const { shiftReports, currentShift, isLoading, error } = useSelector((state: RootState) => state.shiftReport);
+
+  useEffect(() => {
+    if (user && user.branchId) {
+      dispatch(fetchShiftReports(user.branchId));
+    }
+  }, [dispatch, user]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
+
+  const pastShifts = useMemo(() => {
+    return shiftReports.filter(s => s.status === 'CLOSED');
+  }, [shiftReports]);
 
   const getShiftDuration = (start: string, end?: string) => {
     const startDate = parseISO(start);
@@ -36,50 +54,80 @@ export default function ShiftsPage() {
     return `${hours}h ${mins}m`;
   };
 
-  const expectedCash = currentShift 
-    ? currentShift.openingCash + currentShift.cashPayments 
+  const expectedCash = currentShift
+    ? (currentShift.openingCash || 0) + (currentShift.cashSales || 0)
     : 0;
 
-  const discrepancy = actualCash 
-    ? parseFloat(actualCash) - expectedCash 
+  const discrepancy = actualCash
+    ? parseFloat(actualCash) - expectedCash
     : 0;
 
-  const handleStartShift = () => {
+  const handleStartShift = async () => {
     if (!openingCash) {
       toast.error("Please enter opening cash amount");
       return;
     }
-    toast.success("Shift started successfully!");
-    setShowStartShift(false);
-    setOpeningCash("5000");
+    if (!user || !user.branchId || !user.id) {
+      toast.error("User information not available");
+      return;
+    }
+
+    try {
+      await dispatch(startShift({
+        branchId: user.branchId,
+        cashierId: parseInt(user.id),
+        openingCash: parseFloat(openingCash),
+      })).unwrap();
+
+      toast.success("Shift started successfully!");
+      setShowStartShift(false);
+      setOpeningCash("5000");
+    } catch (error: any) {
+      toast.error(error || "Failed to start shift");
+    }
   };
 
-  const handleEndShift = () => {
-    if (!actualCash) {
-      toast.error("Please count and enter actual cash");
+  const handleEndShift = async () => {
+    if (!supervisorPin) {
+      toast.error("Supervisor PIN is required");
       return;
     }
-    if (supervisorPin !== "1234") {
-      toast.error("Invalid supervisor PIN");
+    if (!user || !user.id) {
+      toast.error("User information not available");
       return;
     }
-    toast.success("Shift ended successfully! Generating report...");
-    setShowEndShift(false);
-    setActualCash("");
-    setSupervisorPin("");
+
+    try {
+      await dispatch(endShift({
+        cashierId: parseInt(user.id),
+        closingCash: actualCash ? parseFloat(actualCash) : 0,
+      })).unwrap();
+
+      toast.success("Shift ended successfully!");
+      setShowEndShift(false);
+      setSupervisorPin("");
+      setActualCash("");
+    } catch (error: any) {
+      toast.error(error || "Failed to end shift");
+    }
   };
 
   const paymentChartData = currentShift ? [
-    { name: "Cash", value: currentShift.cashPayments },
-    { name: "Card", value: currentShift.cardPayments },
-    { name: "UPI", value: currentShift.upiPayments },
-    { name: "Wallet", value: currentShift.walletPayments },
-  ] : mockPaymentBreakdown.map(p => ({ name: p.method, value: p.amount }));
+    { name: "Cash", value: currentShift.cashSales || 0 },
+    { name: "Card", value: currentShift.cardSales || 0 },
+    { name: "UPI", value: currentShift.upiSales || 0 },
+    { name: "Wallet", value: currentShift.walletSales || 0 },
+  ] : [
+    { name: "Cash", value: 0 },
+    { name: "Card", value: 0 },
+    { name: "UPI", value: 0 },
+    { name: "Wallet", value: 0 },
+  ];
 
   return (
     <div className="flex min-h-screen bg-background">
       <AppSidebar role="cashier" />
-      
+
       <main className="flex-1 md:ml-60 transition-all duration-300">
         <div className="p-4 lg:p-6 space-y-6">
           {/* Header */}
@@ -167,14 +215,14 @@ export default function ShiftsPage() {
                     <div className="flex items-center gap-3 p-3 bg-card rounded-lg">
                       <Banknote className="h-5 w-5 text-emerald-600" />
                       <div>
-                        <p className="text-xl font-bold">₹{currentShift.cashPayments.toLocaleString()}</p>
+                        <p className="text-xl font-bold">₹{(currentShift.cashSales || 0).toLocaleString()}</p>
                         <p className="text-xs text-muted-foreground">Cash</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 p-3 bg-card rounded-lg">
                       <CreditCard className="h-5 w-5 text-primary" />
                       <div>
-                        <p className="text-xl font-bold">₹{currentShift.cardPayments.toLocaleString()}</p>
+                        <p className="text-xl font-bold">₹{(currentShift.cardSales || 0).toLocaleString()}</p>
                         <p className="text-xs text-muted-foreground">Card</p>
                       </div>
                     </div>
@@ -199,10 +247,10 @@ export default function ShiftsPage() {
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip 
+                      <Tooltip
                         formatter={(value: number) => `₹${value.toLocaleString()}`}
-                        contentStyle={{ 
-                          backgroundColor: 'hsl(var(--card))', 
+                        contentStyle={{
+                          backgroundColor: 'hsl(var(--card))',
                           border: '1px solid hsl(var(--border))',
                           borderRadius: '8px'
                         }}
@@ -279,22 +327,29 @@ export default function ShiftsPage() {
                             ₹{shift.totalSales.toLocaleString()}
                           </TableCell>
                           <TableCell className="text-right">
-                            ₹{shift.cashPayments.toLocaleString()}
+                            ₹{(shift.cashSales || 0).toLocaleString()}
                           </TableCell>
                           <TableCell className="text-right">
-                            ₹{shift.cardPayments.toLocaleString()}
+                            ₹{(shift.cardSales || 0).toLocaleString()}
                           </TableCell>
                           <TableCell className="text-center">
-                            {shift.discrepancy !== undefined && shift.discrepancy !== 0 ? (
-                              <Badge 
-                                variant={shift.discrepancy > 0 ? "success" : "destructive"}
-                                className="gap-1"
-                              >
-                                {shift.discrepancy > 0 ? "+" : ""}₹{shift.discrepancy}
-                              </Badge>
-                            ) : (
-                              <Badge variant="secondary">₹0</Badge>
-                            )}
+                            {(() => {
+                              const expected = (shift.openingCash || 0) + (shift.cashSales || 0);
+                              const actual = shift.closingCash || 0;
+                              const diff = actual - expected;
+
+                              if (diff !== 0) {
+                                return (
+                                  <Badge
+                                    variant={diff > 0 ? "success" : "destructive"}
+                                    className="gap-1"
+                                  >
+                                    {diff > 0 ? "+" : ""}₹{diff}
+                                  </Badge>
+                                );
+                              }
+                              return <Badge variant="secondary">₹0</Badge>;
+                            })()}
                           </TableCell>
                           <TableCell className="text-right">
                             <Button variant="ghost" size="sm" className="gap-1">
@@ -384,7 +439,7 @@ export default function ShiftsPage() {
                   <span className="font-bold text-lg">₹{expectedCash.toLocaleString()}</span>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Opening (₹{currentShift?.openingCash.toLocaleString()}) + Cash Sales (₹{currentShift?.cashPayments.toLocaleString()})
+                  Opening (₹{currentShift?.openingCash.toLocaleString()}) + Cash Sales (₹{(currentShift?.cashSales || 0).toLocaleString()})
                 </p>
               </Card>
 
@@ -445,9 +500,9 @@ export default function ShiftsPage() {
               <Button variant="outline" className="flex-1" onClick={() => setShowEndShift(false)}>
                 Cancel
               </Button>
-              <Button 
-                className="flex-1 gap-2" 
-                variant="destructive" 
+              <Button
+                className="flex-1 gap-2"
+                variant="destructive"
                 onClick={handleEndShift}
                 disabled={!actualCash || supervisorPin.length !== 4}
               >

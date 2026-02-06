@@ -23,8 +23,30 @@ public class OrderController {
     }
     
     @GetMapping
-    public ResponseEntity<List<Order>> getOrders(@RequestParam Long branchId) {
-        return ResponseEntity.ok(orderService.getOrdersByBranch(branchId));
+    public ResponseEntity<List<Order>> getOrders(
+            @RequestParam(required = false) Long branchId,
+            @RequestParam(required = false) Long customerId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
+            @RequestParam(required = false) Order.Status status,
+            @RequestParam(required = false) Order.PaymentMethod paymentMethod) {
+        
+        // If customer ID is provided, get customer orders
+        if (customerId != null && branchId == null) {
+            return ResponseEntity.ok(orderService.getOrdersByCustomer(customerId));
+        }
+        
+        // If branch ID is provided with filters
+        if (branchId != null && (customerId != null || startDate != null || endDate != null || status != null || paymentMethod != null)) {
+            return ResponseEntity.ok(orderService.getOrdersWithFilters(branchId, customerId, startDate, endDate, status, paymentMethod));
+        }
+        
+        // Default: get all orders for branch
+        if (branchId != null) {
+            return ResponseEntity.ok(orderService.getOrdersByBranch(branchId));
+        }
+        
+        throw new IllegalArgumentException("Either branchId or customerId must be provided");
     }
     
     @GetMapping("/{id}")

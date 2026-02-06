@@ -1,75 +1,108 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
+import api from '@/services/api';
 
-export interface InventoryItem {
+export interface Inventory {
   id: string;
-  productId: string;
-  productName: string;
-  branchId: string;
-  branchName: string;
-  stock: number;
-  reorderPoint: number;
-  lastRestocked?: string;
-  status: 'in_stock' | 'low_stock' | 'out_of_stock';
-}
-
-export interface StockMovement {
-  id: string;
-  productId: string;
-  productName: string;
-  branchId: string;
-  type: 'in' | 'out' | 'adjustment';
+  productId: number;
+  branchId: number;
   quantity: number;
-  previousStock: number;
-  newStock: number;
-  reason: string;
-  createdBy: string;
-  createdAt: string;
+  reorderLevel: number;
+  lastRestocked?: string;
+  // Product details
+  productName?: string;
+  productSku?: string;
+  productPrice?: number;
+  status?: 'in_stock' | 'low_stock' | 'out_of_stock';
 }
 
 interface InventoryState {
-  inventory: InventoryItem[];
-  movements: StockMovement[];
+  inventory: Inventory[];
   isLoading: boolean;
   error: string | null;
-  lowStockCount: number;
 }
 
 const initialState: InventoryState = {
   inventory: [],
-  movements: [],
   isLoading: false,
   error: null,
-  lowStockCount: 0,
 };
+
+// Fetch inventory
+export const fetchInventory = createAsyncThunk(
+  'inventory/fetchInventory',
+  async (branchId: number, { rejectWithValue }) => {
+    try {
+      const response = await api.get<Inventory[]>(`/inventory?branchId=${branchId}`);
+      return response.data;
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        return rejectWithValue(error.response.data.message || 'Failed to fetch inventory');
+      }
+      return rejectWithValue(error.message || 'Failed to fetch inventory');
+    }
+  }
+);
+
+// Update inventory
+export const updateInventory = createAsyncThunk(
+  'inventory/updateInventory',
+  async (params: { id: string; data: { quantity: number; reorderLevel?: number } }, { rejectWithValue }) => {
+    try {
+      const response = await api.put<Inventory>(`/inventory/${params.id}`, params.data);
+      return response.data;
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        return rejectWithValue(error.response.data.message || 'Failed to update inventory');
+      }
+      return rejectWithValue(error.message || 'Failed to update inventory');
+    }
+  }
+);
 
 const inventorySlice = createSlice({
   name: 'inventory',
   initialState,
   reducers: {
-    setInventory: (state, action: PayloadAction<InventoryItem[]>) => {
+    setInventory: (state, action: PayloadAction<Inventory[]>) => {
       state.inventory = action.payload;
-      state.lowStockCount = action.payload.filter(i => i.status === 'low_stock' || i.status === 'out_of_stock').length;
     },
-    updateInventoryItem: (state, action: PayloadAction<InventoryItem>) => {
-      const index = state.inventory.findIndex(i => i.id === action.payload.id);
-      if (index !== -1) {
-        state.inventory[index] = action.payload;
-      }
+    clearError: (state) => {
+      state.error = null;
     },
-    setMovements: (state, action: PayloadAction<StockMovement[]>) => {
-      state.movements = action.payload;
-    },
-    addMovement: (state, action: PayloadAction<StockMovement>) => {
-      state.movements.unshift(action.payload);
-    },
-    setLoading: (state, action: PayloadAction<boolean>) => {
-      state.isLoading = action.payload;
-    },
-    setError: (state, action: PayloadAction<string | null>) => {
-      state.error = action.payload;
-    },
+  },
+  extraReducers: (builder) => {
+    builder
+      // Fetch Inventory
+      .addCase(fetchInventory.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchInventory.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.inventory = action.payload;
+      })
+      .addCase(fetchInventory.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+      // Update Inventory
+      .addCase(updateInventory.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(updateInventory.fulfilled, (state, action) => {
+        state.isLoading = false;
+        const index = state.inventory.findIndex(i => i.id === action.payload.id);
+        if (index !== -1) {
+          state.inventory[index] = action.payload;
+        }
+      })
+      .addCase(updateInventory.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      });
   },
 });
 
-export const { setInventory, updateInventoryItem, setMovements, addMovement, setLoading, setError } = inventorySlice.actions;
+export const { setInventory, clearError } = inventorySlice.actions;
 export default inventorySlice.reducer;

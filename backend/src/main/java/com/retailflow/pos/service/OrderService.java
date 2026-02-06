@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -82,5 +83,24 @@ public class OrderService {
     
     public List<Order> getOrdersByDateRange(Long branchId, LocalDateTime startDate, LocalDateTime endDate) {
         return orderRepository.findByBranchIdAndCreatedAtBetween(branchId, startDate, endDate);
+    }
+    
+    // Enhanced filtering methods
+    public List<Order> getOrdersByCustomer(Long customerId) {
+        return orderRepository.findByCustomerId(customerId);
+    }
+    
+    public List<Order> getOrdersWithFilters(Long branchId, Long customerId, LocalDateTime startDate, 
+                                           LocalDateTime endDate, Order.Status status, Order.PaymentMethod paymentMethod) {
+        List<Order> orders = orderRepository.findByBranchId(branchId);
+        
+        // Apply filters
+        return orders.stream()
+                .filter(order -> customerId == null || order.getCustomerId().equals(customerId))
+                .filter(order -> startDate == null || order.getCreatedAt().isAfter(startDate))
+                .filter(order -> endDate == null || order.getCreatedAt().isBefore(endDate))
+                .filter(order -> status == null || order.getStatus().equals(status))
+                .filter(order -> paymentMethod == null || order.getPaymentMethod().equals(paymentMethod))
+                .collect(Collectors.toList());
     }
 }

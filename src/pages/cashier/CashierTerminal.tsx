@@ -13,6 +13,7 @@ import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store";
 import { fetchProducts } from "@/store/slices/productSlice";
+import { createOrder } from "@/store/slices/orderSlice";
 
 export default function CashierTerminal() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -23,11 +24,12 @@ export default function CashierTerminal() {
   const dispatch = useDispatch<AppDispatch>();
   const { products, isLoading, error } = useSelector((state: RootState) => state.product);
   const { user } = useSelector((state: RootState) => state.auth);
+  const { isLoading: orderLoading } = useSelector((state: RootState) => state.order);
 
   const { items, addItem, removeItem, incrementQuantity, decrementQuantity, clearCart, getSubtotal, getTax, getTotal, getItemCount } = useCartStore();
 
   useEffect(() => {
-    if (user && user.storeId) {
+    if (user?.storeId) {
       dispatch(fetchProducts(user.storeId));
     }
   }, [dispatch, user]);
@@ -71,10 +73,38 @@ export default function CashierTerminal() {
     toast.success(`Added ${product.name}`);
   };
 
-  const handleCheckout = (method: string) => {
-    toast.success(`Payment of $${getTotal().toFixed(2)} via ${method} successful!`);
-    clearCart();
-    setShowPayment(false);
+  const handleCheckout = async (method: string) => {
+    if (!user || !user.branchId) {
+      toast.error('User or branch information missing');
+      return;
+    }
+
+    const orderData = {
+      branchId: user.branchId,
+      cashierId: parseInt(user.id),
+      items: items.map(item => ({
+        productId: parseInt(item.productId),
+        productName: item.name,
+        quantity: item.quantity,
+        unitPrice: item.price,
+        totalPrice: item.price * item.quantity,
+      })),
+      subtotal: getSubtotal(),
+      discountAmount: 0,
+      discountPercentage: 0,
+      totalAmount: getTotal(),
+      paymentMethod: method.toUpperCase(),
+      notes: '',
+    };
+
+    try {
+      await dispatch(createOrder(orderData)).unwrap();
+      toast.success(`Payment of ₹${getTotal().toFixed(2)} via ${method} successful!`);
+      clearCart();
+      setShowPayment(false);
+    } catch (error: any) {
+      toast.error(error || 'Failed to create order');
+    }
   };
 
   return (

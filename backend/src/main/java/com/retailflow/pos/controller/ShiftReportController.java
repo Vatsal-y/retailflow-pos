@@ -36,4 +36,11 @@ public class ShiftReportController {
     public ResponseEntity<List<ShiftReport>> getShiftReportsByCashier(@RequestParam Long cashierId) {
         return ResponseEntity.ok(shiftReportService.getShiftReportsByCashier(cashierId));
     }
+    
+    @GetMapping("/active")
+    public ResponseEntity<ShiftReport> getActiveShift(@RequestParam Long cashierId) {
+        return shiftReportService.getActiveShift(cashierId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.noContent().build());
+    }
 }

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Search, Plus, User, Phone, Mail, MapPin, Gift, ShoppingBag, Edit2, X, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,17 +9,19 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AppSidebar } from "@/components/layout/AppSidebar";
-import { mockCustomers, mockOrders } from "@/data/mockData";
 import { Customer } from "@/store/slices/customerSlice";
 import { format, parseISO } from "date-fns";
 import toast from "react-hot-toast";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/store";
+import { fetchCustomers, createCustomer, updateCustomer } from "@/store/slices/customerSlice";
+import { fetchOrders } from "@/store/slices/orderSlice";
 
 export default function CustomersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [isLoading] = useState(false);
   const [newCustomer, setNewCustomer] = useState({
     name: "",
     phone: "",
@@ -27,22 +29,42 @@ export default function CustomersPage() {
     address: "",
   });
 
+  const dispatch = useDispatch<AppDispatch>();
+  const { user } = useSelector((state: RootState) => state.auth);
+  const { customers, isLoading, error } = useSelector((state: RootState) => state.customer);
+  const { orders } = useSelector((state: RootState) => state.order);
+
+  useEffect(() => {
+    if (user && user.storeId) {
+      dispatch(fetchCustomers(user.storeId));
+      if (user.branchId) {
+        dispatch(fetchOrders(user.branchId));
+      }
+    }
+  }, [dispatch, user]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
+
   const filteredCustomers = useMemo(() => {
-    return mockCustomers.filter((customer) => {
-      const matchesSearch = 
+    return customers.filter((customer) => {
+      const matchesSearch =
         customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         customer.phone.includes(searchQuery) ||
         customer.email?.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesSearch;
     });
-  }, [searchQuery]);
+  }, [customers, searchQuery]);
 
   const customerOrders = useMemo(() => {
     if (!selectedCustomer) return [];
-    return mockOrders
+    return orders
       .filter(order => order.customerId === selectedCustomer.id)
       .slice(0, 10);
-  }, [selectedCustomer]);
+  }, [selectedCustomer, orders]);
 
   const getNextReward = (points: number) => {
     const rewards = [
@@ -55,14 +77,47 @@ export default function CustomersPage() {
     return nextReward || { points: points + 500, reward: "Premium Reward" };
   };
 
-  const handleAddCustomer = () => {
+  const handleAddCustomer = async () => {
     if (!newCustomer.name || !newCustomer.phone) {
       toast.error("Name and phone are required");
       return;
     }
-    toast.success(`Customer "${newCustomer.name}" added successfully!`);
-    setIsAddingNew(false);
-    setNewCustomer({ name: "", phone: "", email: "", address: "" });
+    if (!user || !user.storeId) {
+      toast.error("User information not available");
+      return;
+    }
+
+    try {
+      await dispatch(createCustomer({
+        storeId: user.storeId,
+        name: newCustomer.name,
+        phone: newCustomer.phone,
+        email: newCustomer.email || "",
+        address: newCustomer.address || "",
+      })).unwrap();
+
+      toast.success(`Customer "${newCustomer.name}" added successfully!`);
+      setIsAddingNew(false);
+      setNewCustomer({ name: "", phone: "", email: "", address: "" });
+    } catch (error: any) {
+      toast.error(error || "Failed to add customer");
+    }
+  };
+
+  const handleEditCustomer = async () => {
+    if (!selectedCustomer) return;
+
+    try {
+      await dispatch(updateCustomer({
+        id: selectedCustomer.id,
+        data: selectedCustomer,
+      })).unwrap();
+
+      toast.success("Customer updated successfully!");
+      setIsEditing(false);
+    } catch (error: any) {
+      toast.error(error || "Failed to update customer");
+    }
   };
 
   const handleSelectCustomer = (customer: Customer) => {
@@ -73,7 +128,7 @@ export default function CustomersPage() {
   return (
     <div className="flex min-h-screen bg-background">
       <AppSidebar role="cashier" />
-      
+
       <main className="flex-1 md:ml-60 transition-all duration-300">
         <div className="flex flex-col lg:flex-row h-screen overflow-hidden">
           {/* Left: Customer List */}
@@ -138,14 +193,13 @@ export default function CustomersPage() {
                       filteredCustomers.map((customer) => (
                         <TableRow
                           key={customer.id}
-                          className={`cursor-pointer hover:bg-muted/50 ${
-                            selectedCustomer?.id === customer.id ? "bg-primary/5" : ""
-                          }`}
+                          className={`cursor-pointer hover:bg-muted/50 ${selectedCustomer?.id === customer.id ? "bg-primary/5" : ""
+                            }`}
                           onClick={() => setSelectedCustomer(customer)}
                         >
                           <TableCell className="font-medium">{customer.name}</TableCell>
                           <TableCell>{customer.phone}</TableCell>
-                          <TableCell className="text-center">{customer.totalOrders}</TableCell>
+                          <TableCell className="text-center">{customer.visitCount || 0}</TableCell>
                           <TableCell className="text-center">
                             <Badge variant="secondary" className="gap-1">
                               <Gift className="h-3 w-3" />
@@ -153,7 +207,7 @@ export default function CustomersPage() {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            {customer.lastOrderAt 
+                            {customer.lastOrderAt
                               ? format(parseISO(customer.lastOrderAt), "dd MMM")
                               : "-"}
                           </TableCell>
@@ -245,7 +299,7 @@ export default function CustomersPage() {
                           <p>Next reward: <span className="text-foreground font-medium">{next.reward}</span></p>
                           <p>{pointsNeeded} points to go</p>
                           <div className="mt-2 h-2 bg-muted rounded-full overflow-hidden">
-                            <div 
+                            <div
                               className="h-full bg-primary transition-all"
                               style={{ width: `${Math.min(100, (selectedCustomer.loyaltyPoints / next.points) * 100)}%` }}
                             />
@@ -259,11 +313,11 @@ export default function CustomersPage() {
                 {/* Stats */}
                 <div className="grid grid-cols-2 gap-4">
                   <Card className="p-4 text-center">
-                    <p className="text-2xl font-bold">{selectedCustomer.totalOrders}</p>
+                    <p className="text-2xl font-bold">{selectedCustomer.visitCount || 0}</p>
                     <p className="text-sm text-muted-foreground">Total Orders</p>
                   </Card>
                   <Card className="p-4 text-center">
-                    <p className="text-2xl font-bold">₹{selectedCustomer.totalSpent.toLocaleString()}</p>
+                    <p className="text-2xl font-bold">₹{(selectedCustomer.totalPurchases || 0).toLocaleString()}</p>
                     <p className="text-sm text-muted-foreground">Total Spent</p>
                   </Card>
                 </div>
@@ -289,7 +343,7 @@ export default function CustomersPage() {
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="font-semibold">₹{order.total.toLocaleString()}</p>
+                            <p className="font-semibold">₹{order.totalAmount.toLocaleString()}</p>
                             <Badge variant={order.status === "paid" ? "success" : "secondary"} className="text-xs">
                               {order.status}
                             </Badge>
@@ -301,8 +355,8 @@ export default function CustomersPage() {
                 </div>
 
                 {/* Action Button */}
-                <Button 
-                  className="w-full gap-2" 
+                <Button
+                  className="w-full gap-2"
                   variant="posSuccess"
                   onClick={() => handleSelectCustomer(selectedCustomer)}
                 >

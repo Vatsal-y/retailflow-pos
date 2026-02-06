@@ -23,6 +23,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     
     List<Order> findByCashierId(Long cashierId);
     
+    List<Order> findByCustomerId(Long customerId);
+    
     @Query("SELECT SUM(o.totalAmount) FROM Order o WHERE o.branchId = :branchId AND o.createdAt BETWEEN :startDate AND :endDate")
     BigDecimal calculateTotalSales(@Param("branchId") Long branchId, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
     

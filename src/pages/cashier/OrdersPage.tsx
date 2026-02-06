@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Search, Download, Filter, Eye, X, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,10 +9,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AppSidebar } from "@/components/layout/AppSidebar";
-import { mockOrders } from "@/data/mockData";
 import { Order, OrderStatus, PaymentMethod } from "@/store/slices/orderSlice";
 import { format, subDays, isAfter, isBefore, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/store";
+import { fetchOrders } from "@/store/slices/orderSlice";
+import toast from "react-hot-toast";
 
 const ITEMS_PER_PAGE = 25;
 
@@ -23,21 +26,37 @@ export default function OrdersPage() {
   const [paymentFilter, setPaymentFilter] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [isLoading] = useState(false);
+
+  const dispatch = useDispatch<AppDispatch>();
+  const { user } = useSelector((state: RootState) => state.auth);
+  const { orders, isLoading, error } = useSelector((state: RootState) => state.order);
+
+  useEffect(() => {
+    if (user && user.branchId) {
+      dispatch(fetchOrders(user.branchId));
+    }
+  }, [dispatch, user]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
+
 
   const filteredOrders = useMemo(() => {
-    return mockOrders.filter((order) => {
+    return orders.filter((order) => {
       // Search filter
-      const matchesSearch = 
+      const matchesSearch =
         order.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (order.customerName?.toLowerCase().includes(searchQuery.toLowerCase()));
-      
+
       // Status filter
       const matchesStatus = statusFilter === "all" || order.status === statusFilter;
-      
+
       // Payment filter
       const matchesPayment = paymentFilter === "all" || order.paymentMethod === paymentFilter;
-      
+
       // Date filter
       let matchesDate = true;
       if (dateFilter !== "all") {
@@ -46,10 +65,10 @@ export default function OrdersPage() {
         const startDate = subDays(new Date(), daysAgo);
         matchesDate = isAfter(orderDate, startDate);
       }
-      
+
       return matchesSearch && matchesStatus && matchesPayment && matchesDate;
     });
-  }, [searchQuery, statusFilter, dateFilter, paymentFilter]);
+  }, [orders, searchQuery, statusFilter, dateFilter, paymentFilter]);
 
   const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
   const paginatedOrders = filteredOrders.slice(
@@ -64,11 +83,11 @@ export default function OrdersPage() {
       format(parseISO(order.createdAt), "yyyy-MM-dd HH:mm"),
       order.customerName || "Walk-in",
       order.items.length,
-      order.total.toFixed(2),
+      order.totalAmount.toFixed(2),
       order.paymentMethod,
       order.status
     ]);
-    
+
     const csvContent = [headers, ...rows].map(row => row.join(",")).join("\n");
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
@@ -101,7 +120,7 @@ export default function OrdersPage() {
   return (
     <div className="flex min-h-screen bg-background">
       <AppSidebar role="cashier" />
-      
+
       <main className="flex-1 md:ml-60 transition-all duration-300">
         <div className="p-4 lg:p-6 space-y-6">
           {/* Header */}
@@ -214,7 +233,7 @@ export default function OrdersPage() {
                         <TableCell>{format(parseISO(order.createdAt), "dd MMM, HH:mm")}</TableCell>
                         <TableCell>{order.customerName || "Walk-in"}</TableCell>
                         <TableCell className="text-center">{order.items.length}</TableCell>
-                        <TableCell className="text-right font-semibold">₹{order.total.toLocaleString()}</TableCell>
+                        <TableCell className="text-right font-semibold">₹{order.totalAmount.toLocaleString()}</TableCell>
                         <TableCell>
                           <span className="flex items-center gap-1">
                             {getPaymentIcon(order.paymentMethod)}
@@ -332,17 +351,17 @@ export default function OrdersPage() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Tax</span>
-                    <span>₹{selectedOrder.tax.toLocaleString()}</span>
+                    <span>₹{selectedOrder.taxAmount.toFixed(2)}</span>
                   </div>
-                  {selectedOrder.discount > 0 && (
+                  {selectedOrder.discountAmount > 0 && (
                     <div className="flex justify-between text-sm text-emerald-600">
                       <span>Discount</span>
-                      <span>-₹{selectedOrder.discount.toLocaleString()}</span>
+                      <span>-₹{selectedOrder.discountAmount.toLocaleString()}</span>
                     </div>
                   )}
-                  <div className="flex justify-between font-bold text-lg border-t pt-2">
+                  <div className="flex justify-between font-bold text-lg pt-2 border-t">
                     <span>Total</span>
-                    <span className="text-primary">₹{selectedOrder.total.toLocaleString()}</span>
+                    <span>₹{selectedOrder.totalAmount.toLocaleString()}</span>
                   </div>
                 </div>
               </div>

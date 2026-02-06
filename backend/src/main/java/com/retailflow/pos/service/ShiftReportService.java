@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -56,5 +57,9 @@ public class ShiftReportService {
     
     public List<ShiftReport> getShiftReportsByCashier(Long cashierId) {
         return shiftReportRepository.findByCashierId(cashierId);
+    }
+    
+    public Optional<ShiftReport> getActiveShift(Long cashierId) {
+        return shiftReportRepository.findByCashierIdAndStatus(cashierId, ShiftReport.Status.ACTIVE);
     }
 }
