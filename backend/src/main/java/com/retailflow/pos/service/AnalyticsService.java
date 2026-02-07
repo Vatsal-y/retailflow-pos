@@ -107,29 +107,108 @@ public class AnalyticsService {
         List<Branch> branches = branchRepository.findByStoreId(storeId);
         dashboard.put("totalBranches", branches.size());
         
-        // Aggregate sales across all branches
-        LocalDateTime monthStart = LocalDateTime.now().minusDays(30).with(LocalTime.MIN);
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime todayStart = LocalDateTime.now().with(LocalTime.MIN);
+        LocalDateTime todayEnd = LocalDateTime.now().with(LocalTime.MAX);
+        LocalDateTime weekStart = LocalDateTime.now().minusDays(7);
         
-        BigDecimal totalSales = BigDecimal.ZERO;
-        Long totalOrders = 0L;
+        BigDecimal todaySales = BigDecimal.ZERO;
+        BigDecimal weekSales = BigDecimal.ZERO;
+        Long todayOrders = 0L;
+        Long lowStockCount = 0L;
         
         for (Branch branch : branches) {
-            BigDecimal branchSales = orderRepository.calculateTotalSales(branch.getId(), monthStart, now);
-            if (branchSales != null) {
-                totalSales = totalSales.add(branchSales);
+            // Today's sales
+            BigDecimal branchTodaySales = orderRepository.calculateTotalSales(branch.getId(), todayStart, todayEnd);
+            if (branchTodaySales != null) {
+                todaySales = todaySales.add(branchTodaySales);
             }
             
-            Long branchOrders = orderRepository.countOrdersByBranchAndDate(branch.getId(), monthStart, now);
-            if (branchOrders != null) {
-                totalOrders += branchOrders;
+            // Week's sales
+            BigDecimal branchWeekSales = orderRepository.calculateTotalSales(branch.getId(), weekStart, todayEnd);
+            if (branchWeekSales != null) {
+                weekSales = weekSales.add(branchWeekSales);
+            }
+            
+            // Today's orders
+            Long branchTodayOrders = orderRepository.countOrdersByBranchAndDate(branch.getId(), todayStart, todayEnd);
+            if (branchTodayOrders != null) {
+                todayOrders += branchTodayOrders;
+            }
+            
+            // Low stock
+            Long branchLowStock = inventoryRepository.countByBranchIdAndQuantityLessThanEqual(branch.getId(), 10);
+            if (branchLowStock != null) {
+                lowStockCount += branchLowStock;
             }
         }
         
-        dashboard.put("totalSales", totalSales);
-        dashboard.put("totalOrders", totalOrders);
-        dashboard.put("averageOrderValue", totalOrders > 0 ? totalSales.divide(BigDecimal.valueOf(totalOrders), 2, BigDecimal.ROUND_HALF_UP) : BigDecimal.ZERO);
+        dashboard.put("todaySales", todaySales);
+        dashboard.put("weekSales", weekSales);
+        dashboard.put("todayOrders", todayOrders);
+        dashboard.put("lowStockCount", lowStockCount);
         
         return dashboard;
+    }
+    
+    public List<Map<String, Object>> getStoreSalesTrend(Long storeId, int days) {
+        List<Map<String, Object>> trend = new ArrayList<>();
+        List<Branch> branches = branchRepository.findByStoreId(storeId);
+        
+        for (int i = days - 1; i >= 0; i--) {
+            LocalDateTime dayStart = LocalDateTime.now().minusDays(i).with(LocalTime.MIN);
+            LocalDateTime dayEnd = LocalDateTime.now().minusDays(i).with(LocalTime.MAX);
+            
+            BigDecimal totalSales = BigDecimal.ZERO;
+            
+            // Aggregate sales from all branches for this day
+            for (Branch branch : branches) {
+                BigDecimal branchSales = orderRepository.calculateTotalSales(branch.getId(), dayStart, dayEnd);
+                if (branchSales != null) {
+                    totalSales = totalSales.add(branchSales);
+                }
+            }
+            
+            Map<String, Object> dayData = new HashMap<>();
+            dayData.put("date", dayStart.toLocalDate().toString());
+            dayData.put("sales", totalSales);
+            trend.add(dayData);
+        }
+        
+        return trend;
+    }
+    
+    public List<Map<String, Object>> getStoreLowStockItems(Long storeId) {
+        List<Map<String, Object>> allLowStock = new ArrayList<>();
+        List<Branch> branches = branchRepository.findByStoreId(storeId);
+        
+        for (Branch branch : branches) {
+            List<Inventory> lowStock = inventoryRepository.findLowStockItems(branch.getId());
+            
+            for (Inventory inv : lowStock) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("inventoryId", inv.getId());
+                item.put("productId", inv.getProductId());
+                item.put("branchId", branch.getId());
+                item.put("branchName", branch.getName());
+                item.put("currentStock", inv.getQuantity());
+                item.put("reorderLevel", inv.getReorderLevel());
+                
+                productRepository.findById(inv.getProductId()).ifPresent(product -> {
+                    item.put("productName", product.getName());
+                    item.put("sku", product.getSku());
+                });
+                
+                allLowStock.add(item);
+            }
+        }
+        
+        // Sort by stock level ascending (most critical first)
+        allLowStock.sort((a, b) -> {
+            Integer stockA = (Integer) a.get("currentStock");
+            Integer stockB = (Integer) b.get("currentStock");
+            return stockA.compareTo(stockB);
+        });
+        
+        return allLowStock;
     }
 }

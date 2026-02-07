@@ -58,6 +58,12 @@ private List<OrderItem> items = new ArrayList<>();
     @Column(columnDefinition = "TEXT")
     private String notes;
     
+    @Column(name = "points_redeemed")
+    private Integer pointsRedeemed = 0;
+    
+    @Column(name = "points_earned")
+    private Integer pointsEarned = 0;
+    
     public enum PaymentMethod {
         CASH,
         CARD,

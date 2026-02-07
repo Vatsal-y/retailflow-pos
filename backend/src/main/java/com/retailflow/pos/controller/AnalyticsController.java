@@ -48,4 +48,16 @@ public class AnalyticsController {
     public ResponseEntity<Map<String, Object>> getStoreDashboard(@PathVariable Long storeId) {
         return ResponseEntity.ok(analyticsService.getStoreDashboard(storeId));
     }
+    
+    @GetMapping("/store/{storeId}/sales-trend")
+    public ResponseEntity<List<Map<String, Object>>> getStoreSalesTrend(
+            @PathVariable Long storeId,
+            @RequestParam(defaultValue = "7") int days) {
+        return ResponseEntity.ok(analyticsService.getStoreSalesTrend(storeId, days));
+    }
+    
+    @GetMapping("/store/{storeId}/low-stock")
+    public ResponseEntity<List<Map<String, Object>>> getStoreLowStockItems(@PathVariable Long storeId) {
+        return ResponseEntity.ok(analyticsService.getStoreLowStockItems(storeId));
+    }
 }

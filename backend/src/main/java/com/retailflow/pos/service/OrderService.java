@@ -73,8 +73,18 @@ public class OrderService {
                 int pointsEarned = order.getTotalAmount()
                         .divide(BigDecimal.valueOf(100))
                         .intValue();
+                order.setPointsEarned(pointsEarned);
 
-                customer.setLoyaltyPoints(customer.getLoyaltyPoints() + pointsEarned);
+                // Handle points redemption
+                int pointsRedeemed = order.getPointsRedeemed() != null ? order.getPointsRedeemed() : 0;
+                if (pointsRedeemed > 0) {
+                    if (pointsRedeemed > customer.getLoyaltyPoints()) {
+                        throw new RuntimeException("Not enough loyalty points");
+                    }
+                    customer.setLoyaltyPoints(customer.getLoyaltyPoints() - pointsRedeemed + pointsEarned);
+                } else {
+                    customer.setLoyaltyPoints(customer.getLoyaltyPoints() + pointsEarned);
+                }
 
                 customerRepository.save(customer);
             }

@@ -71,6 +71,9 @@ The API will be available at `http://localhost:8080/api`
 
 - **[Setup Guide](SETUP_GUIDE.md)** - Complete installation and configuration
 - **[API Documentation](API_DOCUMENTATION.md)** - All endpoints with examples
+- **[Backend Anatomy](BACKEND_ANATOMY.md)** - Structure, architecture, and modules
+- **[Testing Plan](TESTING_PLAN.md)** - Comprehensive testing strategy
+- **[Postman Testing Guide](POSTMAN_TESTING_GUIDE.md)** - Step-by-step manual testing walkthrough
 
 ## 🔐 Default Configuration
 
@@ -138,6 +141,8 @@ backend/
 ```
 
 ## 🧪 Testing
+
+For a detailed testing strategy, see **[TESTING_PLAN.md](TESTING_PLAN.md)**.
 
 1. Verify application health:
 ```bash

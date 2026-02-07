@@ -1,5 +1,6 @@
 package com.retailflow.pos.controller;
 
+import com.retailflow.pos.dto.response.EmployeeResponse;
 import com.retailflow.pos.entity.*;
 import com.retailflow.pos.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -7,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 // Combined controller for simpler entities to speed up implementation
 @RestController
@@ -21,6 +23,7 @@ public class GeneralController {
     private final InventoryRepository inventoryRepository;
     private final RefundRepository refundRepository;
     private final SubscriptionPlanRepository subscriptionPlanRepository;
+    private final UserRepository userRepository;
     
     // Store Management
     @PostMapping("/stores")
@@ -132,8 +135,15 @@ public class GeneralController {
     }
     
     @GetMapping("/employees")
-    public ResponseEntity<List<Employee>> getEmployees(@RequestParam Long branchId) {
-        return ResponseEntity.ok(employeeRepository.findByBranchId(branchId));
+    public ResponseEntity<List<EmployeeResponse>> getEmployees(@RequestParam Long branchId) {
+        List<Employee> employees = employeeRepository.findByBranchId(branchId);
+        List<EmployeeResponse> responses = employees.stream()
+            .map(emp -> {
+                User user = userRepository.findById(emp.getUserId()).orElse(null);
+                return EmployeeResponse.fromEmployee(emp, user);
+            })
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(responses);
     }
     
     @PutMapping("/employees/{id}")
