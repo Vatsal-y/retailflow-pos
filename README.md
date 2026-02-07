@@ -4,6 +4,8 @@
 
 **URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
 
+![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/Vatsal-y/retailflow-pos?utm_source=oss&utm_medium=github&utm_campaign=Vatsal-y%2Fretailflow-pos&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
+
 ## How can I edit this code?
 
 There are several ways of editing your application.
