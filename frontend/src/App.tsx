@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store';
 import { DashboardLayout } from '@/components/layout';
 import { ProtectedRoute } from '@/components/auth';
 import {
+  LandingPage,
   LoginPage,
   DashboardPage,
   POSPage,
@@ -30,6 +31,7 @@ function App() {
     <Router>
       <Routes>
         {/* Public Routes */}
+        <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
 
         {/* Protected Routes */}
@@ -96,8 +98,7 @@ function App() {
           />
         </Route>
 
-        {/* Default redirect */}
-        <Route path="/" element={<Navigate to={isAuthenticated ? '/dashboard' : '/login'} replace />} />
+        {/* Catch-all redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <Toaster
