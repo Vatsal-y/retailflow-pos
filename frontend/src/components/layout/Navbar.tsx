@@ -94,10 +94,6 @@ export const Navbar: React.FC = () => {
                                         <p className="text-sm text-[hsl(var(--muted-foreground))]">{user?.email}</p>
                                     </div>
                                     <div className="p-2">
-                                        <button className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[hsl(var(--accent))] transition-colors text-left">
-                                            <User size={16} />
-                                            <span>Profile</span>
-                                        </button>
                                         <button
                                             onClick={() => {
                                                 logout();
