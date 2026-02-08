@@ -16,6 +16,43 @@
 
 ---
 
+## 🌐 Live Demo
+
+<div align="center">
+
+### 🚀 [**Try RetailFlow POS Live →**](https://retailflow-pos-roan.vercel.app/)
+
+</div>
+
+| Component | URL |
+|-----------|-----|
+| 🖥️ **Frontend** | [retailflow-pos-roan.vercel.app](https://retailflow-pos-roan.vercel.app/) |
+| ⚙️ **Backend API** | [retailflow-pos-backend.onrender.com](https://retailflow-pos-backend.onrender.com) |
+| 🗄️ **Database** | AWS RDS MySQL |
+
+<div align="center">
+
+> ☕ **First time visiting?** Our backend server takes a power nap when no one's around!  
+> Give it **~1 minute** to wake up, stretch, and get your coffee ready. ☕  
+> *Worth the wait, we promise!* 😴➡️🚀
+
+</div>
+
+### Demo Credentials
+| Role | Email | Password |
+|------|-------|----------|
+| 👨‍💼 Admin | admin@store.com | password123 |
+| 🧑‍💻 Cashier | cashier@store.com | password123 |
+
+### Deployment Stack
+| Service | Platform | Status |
+|---------|----------|--------|
+| Frontend | Vercel | ![Vercel](https://img.shields.io/badge/Vercel-Deployed-00C7B7?style=flat-square&logo=vercel) |
+| Backend | Render | ![Render](https://img.shields.io/badge/Render-Deployed-46E3B7?style=flat-square&logo=render) |
+| Database | AWS RDS | ![AWS](https://img.shields.io/badge/AWS_RDS-MySQL-FF9900?style=flat-square&logo=amazon-aws) |
+
+---
+
 ## 📋 Overview
 
 RetailFlow POS is a comprehensive point-of-sale solution designed for multi-branch retail businesses. It provides complete sales management, inventory tracking, employee management, and real-time analytics - all from a single, intuitive dashboard.
