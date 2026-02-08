@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { ShoppingCart, BarChart3, Users, CreditCard, Shield, Zap, ArrowRight, CheckCircle } from 'lucide-react';
+import { ShoppingCart, BarChart3, Users, CreditCard, Shield, Zap, ArrowRight, CheckCircle, Package, Clock, TrendingUp, Store } from 'lucide-react';
 
 export const LandingPage: React.FC = () => {
     const navigate = useNavigate();
@@ -37,13 +37,19 @@ export const LandingPage: React.FC = () => {
         }
     ];
 
-    const partners = ['Shopify', 'Square', 'Stripe', 'PayPal', 'Visa'];
+    const capabilities = [
+        { icon: <Package size={20} />, label: 'Inventory Management' },
+        { icon: <Clock size={20} />, label: 'Shift Tracking' },
+        { icon: <TrendingUp size={20} />, label: 'Sales Analytics' },
+        { icon: <Store size={20} />, label: 'Multi-Store Support' },
+        { icon: <Users size={20} />, label: 'Customer Management' }
+    ];
 
     const stats = [
-        { value: '10K+', label: 'Active Stores' },
-        { value: '500K+', label: 'Transactions Daily' },
-        { value: '99.9%', label: 'Uptime' },
-        { value: '24/7', label: 'Support' }
+        { value: '6+', label: 'Core Modules' },
+        { value: '4', label: 'User Roles' },
+        { value: '100%', label: 'Open Source' },
+        { value: '24/7', label: 'Self-Hosted' }
     ];
 
     return (
@@ -60,8 +66,7 @@ export const LandingPage: React.FC = () => {
 
                     <div className="hidden md:flex items-center gap-8">
                         <a href="#features" className="text-[#4a5568] hover:text-[#1a472a] transition-colors font-medium">Features</a>
-                        <a href="#testimonials" className="text-[#4a5568] hover:text-[#1a472a] transition-colors font-medium">Testimonials</a>
-                        <a href="#pricing" className="text-[#4a5568] hover:text-[#1a472a] transition-colors font-medium">Pricing</a>
+                        <a href="#why-retailflow" className="text-[#4a5568] hover:text-[#1a472a] transition-colors font-medium">Why RetailFlow</a>
                     </div>
 
                     <div className="flex items-center gap-3">
@@ -135,8 +140,8 @@ export const LandingPage: React.FC = () => {
                         delivering the visibility and data-driven insights to boost sales and ensure growth.
                     </p>
 
-                    {/* CTA Buttons */}
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    {/* CTA Button */}
+                    <div className="flex justify-center">
                         <button
                             onClick={() => navigate('/login')}
                             className="group px-8 py-4 bg-[#1a472a] text-white font-semibold rounded-lg hover:bg-[#1a472a]/90 transition-all shadow-xl shadow-[#1a472a]/20 flex items-center gap-2"
@@ -144,26 +149,24 @@ export const LandingPage: React.FC = () => {
                             Get Started
                             <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                         </button>
-                        <button className="px-8 py-4 bg-white text-[#1a472a] font-semibold rounded-lg border-2 border-[#e5e4e0] hover:border-[#1a472a]/30 transition-colors">
-                            Watch Demo
-                        </button>
                     </div>
                 </div>
             </section>
 
-            {/* Partners Section */}
+            {/* Capabilities Section */}
             <section className="py-12 px-6 border-y border-[#e5e4e0] bg-white/50">
                 <div className="max-w-7xl mx-auto">
                     <div className="flex flex-col md:flex-row items-center justify-between gap-8">
                         <p className="text-sm font-medium text-[#6b7280]">
-                            More than <span className="text-[#1a472a] font-bold">100+</span><br />
-                            companies partner
+                            <span className="text-[#1a472a] font-bold">Powerful Features</span><br />
+                            Everything you need
                         </p>
-                        <div className="flex items-center gap-12 flex-wrap justify-center">
-                            {partners.map((partner) => (
-                                <span key={partner} className="text-xl font-bold text-[#9ca3af] hover:text-[#6b7280] transition-colors cursor-default">
-                                    {partner}
-                                </span>
+                        <div className="flex items-center gap-8 flex-wrap justify-center">
+                            {capabilities.map((cap, index) => (
+                                <div key={index} className="flex items-center gap-2 text-[#6b7280] hover:text-[#1a472a] transition-colors">
+                                    {cap.icon}
+                                    <span className="text-sm font-medium">{cap.label}</span>
+                                </div>
                             ))}
                         </div>
                     </div>
@@ -181,7 +184,7 @@ export const LandingPage: React.FC = () => {
                         </div>
                         <h2 className="text-4xl md:text-5xl font-bold text-[#1a472a] mb-4">
                             Latest advanced technologies to<br />
-                            ensure everything you needs
+                            ensure everything you need
                         </h2>
                         <p className="text-lg text-[#6b7280] max-w-2xl mx-auto">
                             Maximize your team's productivity and revenue with our affordable,
@@ -207,25 +210,37 @@ export const LandingPage: React.FC = () => {
                 </div>
             </section>
 
-            {/* Testimonial Section */}
-            <section id="testimonials" className="py-24 px-6 bg-white">
+            {/* Why RetailFlow Section (replacing testimonials) */}
+            <section id="why-retailflow" className="py-24 px-6 bg-white">
                 <div className="max-w-7xl mx-auto">
                     <div className="grid lg:grid-cols-2 gap-12 items-center">
                         <div>
-                            <blockquote className="text-2xl md:text-3xl text-[#1a472a] font-medium leading-relaxed mb-8">
-                                "Using RetailFlow helped our company to decrease operational
-                                and turnaround time, while increasing the resource allocation
-                                and effectiveness of our inventory management."
-                            </blockquote>
-                            <div className="flex items-center gap-4">
-                                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#1a472a] to-[#2d5a3d] flex items-center justify-center">
-                                    <span className="text-xl">👩‍💼</span>
-                                </div>
-                                <div>
-                                    <p className="font-bold text-[#1a472a]">Sarah Mitchell</p>
-                                    <p className="text-[#6b7280] text-sm">Head of Operations at RetailPro</p>
-                                </div>
+                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#f0f9f1] rounded-full mb-6">
+                                <Store size={16} className="text-[#1a472a]" />
+                                <span className="text-sm font-medium text-[#1a472a]">WHY RETAILFLOW</span>
                             </div>
+                            <h2 className="text-3xl md:text-4xl font-bold text-[#1a472a] leading-relaxed mb-6">
+                                Built for modern retail businesses that demand efficiency and control
+                            </h2>
+                            <p className="text-lg text-[#6b7280] mb-6">
+                                RetailFlow is a complete point-of-sale solution designed for multi-branch retail operations.
+                                From inventory tracking to employee management, our platform gives you full visibility
+                                into every aspect of your business.
+                            </p>
+                            <ul className="space-y-4">
+                                <li className="flex items-start gap-3">
+                                    <CheckCircle size={20} className="text-[#1a472a] mt-1 flex-shrink-0" />
+                                    <span className="text-[#4a5568]">Role-based access control for Cashiers, Branch Managers, Store Admins, and Super Admins</span>
+                                </li>
+                                <li className="flex items-start gap-3">
+                                    <CheckCircle size={20} className="text-[#1a472a] mt-1 flex-shrink-0" />
+                                    <span className="text-[#4a5568]">Real-time sales tracking and comprehensive analytics dashboard</span>
+                                </li>
+                                <li className="flex items-start gap-3">
+                                    <CheckCircle size={20} className="text-[#1a472a] mt-1 flex-shrink-0" />
+                                    <span className="text-[#4a5568]">Complete inventory management with stock alerts and reorder tracking</span>
+                                </li>
+                            </ul>
                         </div>
 
                         {/* Stats */}
@@ -248,20 +263,15 @@ export const LandingPage: React.FC = () => {
                         Ready to scale your<br />retail business?
                     </h2>
                     <p className="text-xl text-white/70 mb-10 max-w-2xl mx-auto">
-                        Join thousands of retailers who trust RetailFlow to manage their
-                        sales, inventory, and team effectively.
+                        Get started with RetailFlow today and take control of your
+                        sales, inventory, and team management.
                     </p>
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                        <button
-                            onClick={() => navigate('/login')}
-                            className="px-8 py-4 bg-white text-[#1a472a] font-semibold rounded-lg hover:bg-white/90 transition-colors"
-                        >
-                            Get Started Free
-                        </button>
-                        <button className="px-8 py-4 bg-transparent text-white font-semibold rounded-lg border-2 border-white/30 hover:border-white/60 transition-colors">
-                            Request Demo
-                        </button>
-                    </div>
+                    <button
+                        onClick={() => navigate('/login')}
+                        className="px-8 py-4 bg-white text-[#1a472a] font-semibold rounded-lg hover:bg-white/90 transition-colors"
+                    >
+                        Get Started Free
+                    </button>
                 </div>
             </section>
 
@@ -284,8 +294,8 @@ export const LandingPage: React.FC = () => {
                         <div>
                             <h4 className="font-semibold text-white mb-4">Product</h4>
                             <ul className="space-y-3 text-white/60 text-sm">
-                                <li><a href="#" className="hover:text-white transition-colors">Features</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
+                                <li><a href="#features" className="hover:text-white transition-colors">Features</a></li>
+                                <li><a href="#why-retailflow" className="hover:text-white transition-colors">Why RetailFlow</a></li>
                                 <li><a href="#" className="hover:text-white transition-colors">Integrations</a></li>
                                 <li><a href="#" className="hover:text-white transition-colors">Updates</a></li>
                             </ul>
@@ -307,7 +317,7 @@ export const LandingPage: React.FC = () => {
                                 <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
                                 <li><a href="#" className="hover:text-white transition-colors">Documentation</a></li>
                                 <li><a href="#" className="hover:text-white transition-colors">API Reference</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">Contact Sales</a></li>
+                                <li><a href="#" className="hover:text-white transition-colors">Contact Support</a></li>
                             </ul>
                         </div>
                     </div>
