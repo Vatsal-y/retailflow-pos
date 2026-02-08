@@ -276,61 +276,34 @@ export const LandingPage: React.FC = () => {
             </section>
 
             {/* Footer */}
-            <footer className="py-16 px-6 bg-[#0f2818]">
+            <footer className="py-12 px-6 bg-[#0f2818]">
                 <div className="max-w-7xl mx-auto">
-                    <div className="grid md:grid-cols-4 gap-12 mb-12">
-                        <div>
-                            <div className="flex items-center gap-2 mb-4">
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-8">
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2">
                                 <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center">
                                     <ShoppingCart size={20} className="text-white" />
                                 </div>
                                 <span className="text-xl font-bold text-white">RetailFlow</span>
                             </div>
+                            <span className="hidden md:block text-white/40">|</span>
                             <p className="text-white/60 text-sm">
                                 Modern point of sale system built for retail excellence.
                             </p>
                         </div>
 
-                        <div>
-                            <h4 className="font-semibold text-white mb-4">Product</h4>
-                            <ul className="space-y-3 text-white/60 text-sm">
-                                <li><a href="#features" className="hover:text-white transition-colors">Features</a></li>
-                                <li><a href="#why-retailflow" className="hover:text-white transition-colors">Why RetailFlow</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">Integrations</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">Updates</a></li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h4 className="font-semibold text-white mb-4">Company</h4>
-                            <ul className="space-y-3 text-white/60 text-sm">
-                                <li><a href="#" className="hover:text-white transition-colors">About</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h4 className="font-semibold text-white mb-4">Support</h4>
-                            <ul className="space-y-3 text-white/60 text-sm">
-                                <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">Documentation</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">API Reference</a></li>
-                                <li><a href="#" className="hover:text-white transition-colors">Contact Support</a></li>
-                            </ul>
+                        <div className="flex items-center gap-6 text-white/60 text-sm">
+                            <a href="#features" className="hover:text-white transition-colors">Features</a>
+                            <a href="#why-retailflow" className="hover:text-white transition-colors">Why RetailFlow</a>
                         </div>
                     </div>
 
-                    <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div className="pt-6 border-t border-white/10 text-center">
                         <p className="text-white/40 text-sm">© 2026 RetailFlow. All rights reserved.</p>
-                        <div className="flex items-center gap-6 text-white/40 text-sm">
-                            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-                            <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
-                        </div>
                     </div>
                 </div>
             </footer>
         </div>
     );
 };
+

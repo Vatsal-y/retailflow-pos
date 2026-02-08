@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- Background circle -->
+  <rect x="10" y="10" width="80" height="80" rx="16" fill="#1a472a"/>
+  
+  <!-- Shopping cart icon -->
+  <g fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Cart body -->
+    <path d="M30 35 L35 35 L42 60 L70 60 L75 42 L38 42"/>
+    <!-- Wheels -->
+    <circle cx="45" cy="70" r="5" fill="white"/>
+    <circle cx="65" cy="70" r="5" fill="white"/>
+    <!-- Handle -->
+    <path d="M25 35 L30 35"/>
+  </g>
+</svg>
