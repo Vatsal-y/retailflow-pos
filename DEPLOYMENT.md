@@ -1,36 +1,66 @@
 # RetailFlow POS - Deployment Guide
 
-Deploy your RetailFlow POS application using **Vercel** (frontend) + **Render** (backend) + **PlanetScale** (database).
+Deploy your RetailFlow POS application using **Vercel** (frontend) + **Render** (backend) + **AWS RDS** (database).
 
 ---
 
 ## 📋 Prerequisites
 
 - GitHub account with your code pushed
-- Accounts on [Vercel](https://vercel.com), [Render](https://render.com), and [PlanetScale](https://planetscale.com)
+- Accounts on [Vercel](https://vercel.com), [Render](https://render.com), and [AWS](https://aws.amazon.com)
 
 ---
 
-## Step 1: Set Up PlanetScale Database
+## Step 1: Set Up AWS RDS MySQL Database
 
-### 1.1 Create Database
-1. Go to [PlanetScale](https://planetscale.com) and sign up/login
-2. Click **"Create a new database"**
-3. Name it `retailflow-pos`
-4. Choose the closest region to your users
-5. Click **"Create database"**
+### 1.1 Create RDS Instance
+1. Go to [AWS Console](https://console.aws.amazon.com) → Search **"RDS"**
+2. Click **"Create database"**
+3. Choose **"Standard create"**
+4. Select **"MySQL"** as the engine
+5. Choose **"Free tier"** template
 
-### 1.2 Get Connection Credentials
-1. Click **"Connect"** on your database
-2. Select **"Java"** as the connection method
-3. Copy the connection details:
-   - **Host**: `aws.connect.psdb.cloud` (or similar)
-   - **Username**: `your-username`
-   - **Password**: `your-password`
+### 1.2 Configure Settings
+| Setting | Value |
+|---------|-------|
+| DB instance identifier | `retailflow-pos` |
+| Master username | `admin` |
+| Master password | Create a strong password |
+| DB instance class | `db.t3.micro` (free tier) |
+| Storage | 20 GB (free tier) |
 
-### 1.3 Create the Connection String
+### 1.3 Connectivity Settings
+1. **Public access**: Select **"Yes"** (required for Render to connect)
+2. **VPC security group**: Create new or use existing
+3. Click **"Create database"**
+
+### 1.4 Configure Security Group
+After RDS is created:
+1. Click on your database instance
+2. Go to **"Connectivity & security"** tab
+3. Click on the **VPC security group**
+4. Edit **Inbound rules** → Add rule:
+   - Type: `MySQL/Aurora`
+   - Port: `3306`
+   - Source: `0.0.0.0/0` (allows all IPs - for Render access)
+5. Save rules
+
+### 1.5 Get Connection Details
+From RDS dashboard, note down:
+- **Endpoint**: `retailflow-pos.xxxx.us-east-1.rds.amazonaws.com`
+- **Port**: `3306`
+- **Username**: `admin`
+- **Password**: (your password)
+
+### 1.6 Create the Database
+Connect using MySQL client or DBeaver:
+```sql
+CREATE DATABASE retailflow_pos;
 ```
-jdbc:mysql://aws.connect.psdb.cloud/retailflow-pos?sslMode=REQUIRED
+
+Your connection URL will be:
+```
+jdbc:mysql://retailflow-pos.xxxx.us-east-1.rds.amazonaws.com:3306/retailflow_pos
 ```
 
 ---
@@ -50,7 +80,7 @@ jdbc:mysql://aws.connect.psdb.cloud/retailflow-pos?sslMode=REQUIRED
 | Root Directory | `backend` |
 | Environment | `Docker` |
 | Dockerfile Path | `./Dockerfile` |
-| Instance Type | `Free` (or Starter for better performance) |
+| Instance Type | `Free` |
 
 ### 2.3 Set Environment Variables
 Add these in the **"Environment"** section:
@@ -58,21 +88,24 @@ Add these in the **"Environment"** section:
 | Key | Value |
 |-----|-------|
 | `SPRING_PROFILES_ACTIVE` | `production` |
-| `DATABASE_URL` | `jdbc:mysql://aws.connect.psdb.cloud/retailflow-pos?sslMode=REQUIRED` |
-| `DATABASE_USERNAME` | Your PlanetScale username |
-| `DATABASE_PASSWORD` | Your PlanetScale password |
-| `JWT_SECRET` | Generate a secure 64-char hex string |
-| `CORS_ALLOWED_ORIGINS` | `https://your-app.vercel.app` (update after frontend deploy) |
+| `DATABASE_URL` | `jdbc:mysql://your-rds-endpoint:3306/retailflow_pos` |
+| `DATABASE_USERNAME` | `admin` |
+| `DATABASE_PASSWORD` | Your RDS password |
+| `JWT_SECRET` | Generate: 64-character hex string |
+| `CORS_ALLOWED_ORIGINS` | `https://your-app.vercel.app` |
+
+**To generate JWT_SECRET**, run in PowerShell:
+```powershell
+-join ((48..57) + (65..70) + (97..102) | Get-Random -Count 64 | ForEach-Object {[char]$_})
+```
 
 ### 2.4 Deploy
 1. Click **"Create Web Service"**
-2. Wait for the build to complete (~5-10 minutes first time)
-3. Copy your backend URL: `https://retailflow-pos-backend.onrender.com`
+2. Wait for the build (~5-10 minutes)
+3. Copy your URL: `https://retailflow-pos-backend.onrender.com`
 
-### 2.5 Verify Deployment
+### 2.5 Verify
 Visit: `https://your-backend.onrender.com/api/actuator/health`
-
-Should return: `{"status":"UP"}`
 
 ---
 
@@ -92,7 +125,6 @@ Should return: `{"status":"UP"}`
 | Output Directory | `dist` |
 
 ### 3.3 Set Environment Variables
-Add in the **"Environment Variables"** section:
 
 | Key | Value |
 |-----|-------|
@@ -102,74 +134,53 @@ Add in the **"Environment Variables"** section:
 
 ### 3.4 Deploy
 1. Click **"Deploy"**
-2. Wait for the build (~2-3 minutes)
-3. Your frontend URL: `https://your-app.vercel.app`
+2. Your URL: `https://your-app.vercel.app`
 
 ---
 
-## Step 4: Update CORS Settings
+## Step 4: Update CORS
 
-After deploying the frontend, update the backend's CORS setting on Render:
-
-1. Go to your Render web service
-2. Navigate to **"Environment"**
-3. Update `CORS_ALLOWED_ORIGINS` to your Vercel URL:
-   ```
-   https://your-app.vercel.app
-   ```
-4. Click **"Save Changes"** (this will redeploy automatically)
-
----
-
-## Step 5: Initialize Data (Optional)
-
-After deployment, you may need to create an initial admin user. You can do this by:
-
-1. Using the API directly via Postman/curl
-2. Or temporarily enabling data initialization in your backend
+1. Go to Render → Your web service → **Environment**
+2. Update `CORS_ALLOWED_ORIGINS` to your Vercel URL
+3. Save (auto-redeploys)
 
 ---
 
 ## 🔧 Troubleshooting
 
-### Backend not starting?
-- Check Render logs for errors
-- Verify all environment variables are set
-- Ensure PlanetScale credentials are correct
+### Cannot connect to RDS?
+- Ensure **Public accessibility** is enabled
+- Check security group allows inbound on port 3306
+- Verify the endpoint URL is correct
+
+### Backend times out?
+- Free tier Render sleeps after 15 min
+- First request takes ~30 seconds to wake up
 
 ### CORS errors?
-- Make sure `CORS_ALLOWED_ORIGINS` matches your exact Vercel URL
-- Don't include trailing slashes
-
-### Database connection failed?
-- PlanetScale requires SSL - ensure `sslMode=REQUIRED` in the URL
-- Check your credentials are correct
-
-### Render is slow on free tier?
-- Free tier sleeps after 15 min of inactivity
-- First request after sleep takes ~30 seconds
-- Consider upgrading to Starter ($7/month) for always-on
+- Ensure exact Vercel URL (no trailing slash)
+- Redeploy backend after updating CORS
 
 ---
 
-## 📁 Files Created for Deployment
+## 💰 AWS Free Tier Limits (12 months)
 
-| File | Purpose |
-|------|---------|
-| `frontend/vercel.json` | Vercel configuration with SPA routing |
-| `backend/Dockerfile` | Docker image for Render |
-| `backend/render.yaml` | Render blueprint (optional) |
-| `backend/src/main/resources/application-production.properties` | Production Spring config |
+| Resource | Free Limit |
+|----------|------------|
+| RDS db.t3.micro | 750 hours/month |
+| Storage | 20 GB |
+| Backup | 20 GB |
+
+**After 12 months**: ~$15-25/month for db.t3.micro
 
 ---
 
 ## 🎉 Done!
 
-Your RetailFlow POS is now live at:
 - **Frontend**: `https://your-app.vercel.app`
-- **Backend API**: `https://your-backend.onrender.com/api`
+- **Backend**: `https://your-backend.onrender.com/api`
+- **Database**: AWS RDS MySQL
 
-### Default Login Credentials
-After seeding, use these to log in:
+### Login Credentials
 - **Admin**: admin@store.com / password123
 - **Cashier**: cashier@store.com / password123
