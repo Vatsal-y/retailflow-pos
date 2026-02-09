@@ -185,6 +185,20 @@ export const EmployeesPage: React.FC = () => {
         return branch?.name || 'Unknown Branch';
     };
 
+    const handleDeleteEmployee = async (emp: Employee) => {
+        if (!confirm(`Are you sure you want to delete ${emp.user?.fullName || 'this employee'}?`)) {
+            return;
+        }
+        try {
+            await storesApi.deleteEmployee(emp.id);
+            setEmployees(employees.filter((e) => e.id !== emp.id));
+            toast.success('Employee deleted successfully');
+        } catch (error) {
+            console.error('Failed to delete employee:', error);
+            toast.error('Failed to delete employee');
+        }
+    };
+
     if (loading) {
         return (
             <div className="space-y-4">
@@ -345,7 +359,7 @@ export const EmployeesPage: React.FC = () => {
                                                     <Button variant="ghost" size="sm" onClick={() => handleOpenEditDialog(emp)}>
                                                         <Edit size={16} />
                                                     </Button>
-                                                    <Button variant="ghost" size="sm" className="text-red-500">
+                                                    <Button variant="ghost" size="sm" className="text-red-500" onClick={() => handleDeleteEmployee(emp)}>
                                                         <Trash2 size={16} />
                                                     </Button>
                                                 </div>

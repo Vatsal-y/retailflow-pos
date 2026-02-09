@@ -18,8 +18,6 @@ import {
     ShoppingCart,
     Package,
     AlertTriangle,
-    ArrowUpRight,
-    ArrowDownRight,
 } from 'lucide-react';
 
 export const DashboardPage: React.FC = () => {
@@ -83,8 +81,6 @@ export const DashboardPage: React.FC = () => {
             format: 'currency',
             icon: TrendingUp,
             color: 'from-emerald-500 to-teal-600',
-            trend: '+12.5%',
-            trendUp: true,
         },
         {
             title: "Week's Sales",
@@ -92,8 +88,6 @@ export const DashboardPage: React.FC = () => {
             format: 'currency',
             icon: ShoppingCart,
             color: 'from-blue-500 to-indigo-600',
-            trend: '+8.2%',
-            trendUp: true,
         },
         {
             title: "Today's Orders",
@@ -101,8 +95,6 @@ export const DashboardPage: React.FC = () => {
             format: 'number',
             icon: Package,
             color: 'from-purple-500 to-pink-600',
-            trend: '+15',
-            trendUp: true,
         },
         {
             title: 'Low Stock Items',
@@ -110,8 +102,6 @@ export const DashboardPage: React.FC = () => {
             format: 'number',
             icon: AlertTriangle,
             color: 'from-amber-500 to-orange-600',
-            trend: lowStock.length > 5 ? 'Critical' : 'OK',
-            trendUp: lowStock.length <= 5,
         },
     ];
 
@@ -148,10 +138,6 @@ export const DashboardPage: React.FC = () => {
                                             ? formatCurrency(kpi.value)
                                             : kpi.value}
                                     </p>
-                                    <div className={`flex items-center gap-1 mt-2 text-sm ${kpi.trendUp ? 'text-emerald-500' : 'text-amber-500'}`}>
-                                        {kpi.trendUp ? <ArrowUpRight size={16} /> : <ArrowDownRight size={16} />}
-                                        {kpi.trend}
-                                    </div>
                                 </div>
                                 <div className={`p-3 rounded-xl bg-gradient-to-br ${kpi.color} shadow-lg`}>
                                     <kpi.icon size={24} className="text-white" />

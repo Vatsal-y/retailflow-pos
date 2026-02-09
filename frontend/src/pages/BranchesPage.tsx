@@ -112,6 +112,20 @@ export const BranchesPage: React.FC = () => {
         }
     };
 
+    const handleDeleteBranch = async (branch: Branch) => {
+        if (!confirm(`Are you sure you want to delete "${branch.name}"? This action cannot be undone.`)) {
+            return;
+        }
+        try {
+            await storesApi.deleteBranch(branch.id);
+            setBranches(branches.filter((b) => b.id !== branch.id));
+            toast.success('Branch deleted successfully');
+        } catch (error) {
+            console.error('Failed to delete branch:', error);
+            toast.error('Failed to delete branch');
+        }
+    };
+
     if (loading) {
         return (
             <div className="space-y-4">
@@ -241,7 +255,7 @@ export const BranchesPage: React.FC = () => {
                                         variant="ghost"
                                         size="sm"
                                         className="text-red-500"
-                                        onClick={() => toast.info('Delete functionality coming soon')}
+                                        onClick={() => handleDeleteBranch(branch)}
                                     >
                                         <Trash2 size={14} />
                                     </Button>

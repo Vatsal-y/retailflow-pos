@@ -44,6 +44,10 @@ export const storesApi = {
         return response.data;
     },
 
+    deleteBranch: async (id: number): Promise<void> => {
+        await apiClient.delete(`/branches/${id}`);
+    },
+
     // Employees
     getEmployees: async (branchId: number): Promise<Employee[]> => {
         const response = await apiClient.get<Employee[]>(`/employees?branchId=${branchId}`);
@@ -58,6 +62,10 @@ export const storesApi = {
     updateEmployee: async (id: number, data: Partial<Employee>): Promise<Employee> => {
         const response = await apiClient.put<Employee>(`/employees/${id}`, data);
         return response.data;
+    },
+
+    deleteEmployee: async (id: number): Promise<void> => {
+        await apiClient.delete(`/employees/${id}`);
     },
 
     // Subscription Plans

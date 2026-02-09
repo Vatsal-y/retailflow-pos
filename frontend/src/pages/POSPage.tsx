@@ -408,7 +408,7 @@ export const POSPage: React.FC = () => {
                         disabled={items.length === 0}
                     >
                         <CreditCard size={18} />
-                        Pay {formatCurrency(total)}
+                        Pay {formatCurrency(total - pointsDiscount)}
                     </Button>
                 </div>
             </Card>
@@ -448,7 +448,7 @@ export const POSPage: React.FC = () => {
                         <div className="p-4 rounded-lg bg-[hsl(var(--accent))]">
                             <div className="flex justify-between text-lg font-bold">
                                 <span>Amount Due</span>
-                                <span className="text-[hsl(var(--primary))]">{formatCurrency(total)}</span>
+                                <span className="text-[hsl(var(--primary))]">{formatCurrency(total - pointsDiscount)}</span>
                             </div>
                         </div>
                     </div>

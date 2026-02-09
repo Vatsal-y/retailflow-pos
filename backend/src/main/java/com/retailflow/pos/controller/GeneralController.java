@@ -77,6 +77,12 @@ public class GeneralController {
         return ResponseEntity.ok(branchRepository.save(existing));
     }
     
+    @DeleteMapping("/branches/{id}")
+    public ResponseEntity<Void> deleteBranch(@PathVariable Long id) {
+        branchRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+    
     // Category Management
     @PostMapping("/categories")
     public ResponseEntity<Category> createCategory(@RequestBody Category category) {
@@ -153,6 +159,12 @@ public class GeneralController {
         existing.setSalary(employee.getSalary());
         existing.setStatus(employee.getStatus());
         return ResponseEntity.ok(employeeRepository.save(existing));
+    }
+    
+    @DeleteMapping("/employees/{id}")
+    public ResponseEntity<Void> deleteEmployee(@PathVariable Long id) {
+        employeeRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
     
     // Inventory Management
