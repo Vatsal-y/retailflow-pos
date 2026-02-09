@@ -52,18 +52,20 @@ export const Sidebar: React.FC = () => {
     return (
         <aside
             className={cn(
-                'fixed left-0 top-0 z-40 h-screen bg-[hsl(var(--card))] border-r border-[hsl(var(--border))] transition-all duration-300',
+                'fixed left-0 top-0 z-40 h-screen gradient-sidebar border-r border-[hsl(var(--border)/0.5)] transition-all duration-300',
                 collapsed ? 'w-16' : 'w-64'
             )}
         >
             {/* Logo */}
-            <div className="flex h-16 items-center justify-between px-4 border-b border-[hsl(var(--border))]">
+            <div className="flex h-16 items-center justify-between px-4 border-b border-[hsl(var(--border)/0.5)]">
                 {!collapsed && (
-                    <div className="flex items-center gap-2">
-                        <div className="h-8 w-8 rounded-lg gradient-primary flex items-center justify-center">
+                    <div className="flex items-center gap-3">
+                        <div className="h-9 w-9 rounded-xl gradient-glow flex items-center justify-center">
                             <ShoppingCart size={18} className="text-white" />
                         </div>
-                        <span className="font-bold text-lg">RetailFlow</span>
+                        <span className="font-display font-bold text-xl bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(180_50%_35%)] bg-clip-text text-transparent">
+                            RetailFlow
+                        </span>
                     </div>
                 )}
                 <button
@@ -76,15 +78,16 @@ export const Sidebar: React.FC = () => {
 
             {/* Navigation */}
             <nav className="p-3 space-y-1 overflow-y-auto h-[calc(100vh-4rem)]">
-                {filteredNavItems.map((item) => (
+                {filteredNavItems.map((item, index) => (
                     <NavLink
                         key={item.path}
                         to={item.path}
                         className={({ isActive }) =>
                             cn(
-                                'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200',
+                                'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 opacity-0 animate-slideInLeft',
+                                `stagger-${Math.min(index + 1, 10)}`,
                                 isActive || location.pathname === item.path
-                                    ? 'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-lg shadow-[hsl(var(--primary)/0.25)]'
+                                    ? 'gradient-glow text-white nav-active'
                                     : 'text-[hsl(var(--muted-foreground))] hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--foreground))]',
                                 collapsed && 'justify-center'
                             )
